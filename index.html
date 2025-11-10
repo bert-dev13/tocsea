@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Soil Erosion Prediction System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="top-navbar-container">
+            <div class="school-logo-wrapper">
+                <img src="assets/images/logo.png" alt="School Logo" class="school-logo">
+                <span class="school-name">Licerio Antiporda Sr. National High School</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="app-wrapper">
+        <div class="container">
+            <!-- Header Section -->
+            <header class="header">
+                <div class="header-container">
+                    <div class="title-wrapper">
+                        <span class="title-icon-left">🌊</span>
+                        <h1 class="title">Coastal Soil Erosion Prediction</h1>
+                        <span class="title-icon-right">🌊</span>
+                    </div>
+                    <div class="title-border-line"></div>
+                    <p class="subtitle">Sistema ng Paghula ng Pagguho ng Lupa sa Baybayin</p>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Input Section -->
+                <section class="input-section">
+                    <form id="predictionForm" class="prediction-form">
+                        <div class="form-group">
+                            <label for="seawallLength" class="form-label">
+                                <span class="label-primary">Seawall Length</span>
+                                <span class="label-secondary">Haba ng Seawall (metro)</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="seawallLength" 
+                                name="seawallLength" 
+                                class="form-input"
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="typhoons" class="form-label">
+                                <span class="label-primary">Typhoons per Year</span>
+                                <span class="label-secondary">Bilang ng Bagyo bawat Taon</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="typhoons" 
+                                name="typhoons" 
+                                class="form-input"
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="floods" class="form-label">
+                                <span class="label-primary">Floods per Year</span>
+                                <span class="label-secondary">Bilang ng Baha bawat Taon</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="floods" 
+                                name="floods" 
+                                class="form-input"
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="soilType" class="form-label">
+                                <span class="label-primary">Select Soil Type</span>
+                                <span class="label-secondary">Piliin ang Uri ng Lupa</span>
+                            </label>
+                            <select 
+                                id="soilType" 
+                                name="soilType" 
+                                class="form-input form-select"
+                                required
+                            >
+                                <option value="">-- Select Soil Type --</option>
+                                <option value="sandy">Sandy Soil</option>
+                                <option value="clay">Clay Soil</option>
+                                <option value="loamy">Loamy Soil</option>
+                                <option value="silty">Silty Soil</option>
+                                <option value="peaty">Peaty Soil</option>
+                                <option value="chalky">Chalky Soil</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="predict-button" id="predictBtn">
+                            <span>Predict</span>
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Results Section -->
+                <section class="results-section" id="resultsSection" style="display: none;">
+                    <div class="results-header">
+                        <div class="results-header-icon">📊</div>
+                        <h2 class="results-title">Prediction Results</h2>
+                        <p class="results-subtitle">Mga Resulta ng Hula</p>
+                        <div class="results-header-line"></div>
+                    </div>
+
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-card-icon">📉</div>
+                            <div class="result-label">Predicted Soil Loss</div>
+                            <div class="result-label-secondary">Tinatayang Pagkawala ng Lupa</div>
+                            <div class="result-value-wrapper">
+                                <div class="result-value" id="soilLossValue">-</div>
+                            </div>
+                            <div class="result-unit">metric tons per year</div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="result-card-icon">🌱</div>
+                            <div class="result-label">Selected Soil Type</div>
+                            <div class="result-label-secondary">Napiling Uri ng Lupa</div>
+                            <div class="result-value-wrapper">
+                                <div class="result-value" id="soilTypeValue">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plant-recommendations" id="plantRecommendations">
+                        <div class="recommendations-header">
+                            <div class="recommendations-icon">🌿</div>
+                            <h3 class="recommendations-title">Plant Recommendations</h3>
+                            <p class="recommendations-subtitle">Rekomendasyon sa Pagtatanim</p>
+                        </div>
+                        <div class="recommendations-content" id="recommendationsContent">
+                            <!-- Plant recommendations will be inserted here -->
+                        </div>
+                    </div>
+
+                    <button type="button" class="reset-button" id="resetBtn">
+                        <span class="reset-icon">🔄</span>
+                        <span>Calculate New Prediction</span>
+                    </button>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
