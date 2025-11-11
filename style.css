@@ -965,42 +965,22 @@ body::before {
     }
 }
 
-.reset-button {
-    width: 100%;
-    padding: 1rem 1.5rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--primary);
-    background: transparent;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-xs);
-    position: relative;
-    overflow: hidden;
-    animation: buttonFadeIn 0.6s ease-out 1.1s both;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Plant Recommendations Section */
-.plant-recommendations {
+/* Recommendations Section */
+.recommendations-section {
     margin-top: var(--space-xl);
-    padding: calc(var(--space-xl) * 1.5);
+    margin-bottom: var(--space-xl);
+    padding: calc(var(--space-xl) * 1.2);
     background: linear-gradient(135deg, rgba(0, 200, 83, 0.05) 0%, rgba(0, 200, 83, 0.02) 100%);
     border-radius: var(--radius-lg);
     border: 2px solid rgba(0, 200, 83, 0.2);
     border-top: 3px solid var(--secondary);
+    animation: slideUpScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: 1.2s;
     position: relative;
     overflow: hidden;
-    animation: slideUpScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1.2s both;
 }
 
-.plant-recommendations::before {
+.recommendations-section::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1025,149 +1005,388 @@ body::before {
 }
 
 .recommendations-icon {
-    font-size: 2.5rem;
+    font-size: 3rem;
     margin-bottom: var(--space-sm);
-    animation: iconFloat 3s ease-in-out infinite;
-    filter: drop-shadow(0 2px 4px rgba(0, 200, 83, 0.3));
+    animation: iconBounce 1s ease-out 0.3s both;
+    filter: drop-shadow(0 4px 8px rgba(0, 200, 83, 0.2));
 }
 
 .recommendations-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
     font-family: var(--font-tech);
     color: var(--text-primary);
     margin-bottom: 0.5rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    animation: titleSlideIn 0.6s ease-out 1.3s both;
+    animation: titleSlideIn 0.6s ease-out 0.4s both;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .recommendations-subtitle {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--text-secondary);
-    font-weight: 400;
-    font-style: italic;
-    animation: subtitleFadeIn 0.6s ease-out 1.4s both;
+    font-weight: 500;
+    margin-bottom: var(--space-md);
+    animation: subtitleFadeIn 0.6s ease-out 0.5s both;
 }
 
 .recommendations-content {
     position: relative;
     z-index: 2;
-    animation: fadeIn 0.6s ease-out 1.5s both;
 }
 
-.recommendations-intro {
-    font-size: 0.9375rem;
-    color: var(--text-primary);
-    line-height: 1.8;
-    margin-bottom: var(--space-lg);
-    text-align: center;
-    padding: var(--space-md);
-    background: rgba(255, 255, 255, 0.6);
-    border-radius: var(--radius);
-    border-left: 4px solid var(--secondary);
-}
-
-.recommendations-intro strong {
-    color: var(--primary);
-    font-weight: 700;
-}
-
-.recommendations-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.recommendations-loading {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
     gap: var(--space-md);
 }
 
-.recommendation-item {
-    padding: var(--space-md) var(--space-lg);
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0, 200, 83, 0.2);
+    border-top-color: var(--secondary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.recommendations-loading p {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.recommendations-text {
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+.recommendations-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-lg) 0;
     background: var(--surface);
     border-radius: var(--radius);
-    border: 2px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: cardSlideIn 0.5s ease-out both;
-    position: relative;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease-out;
 }
 
-.recommendation-item::before {
+.recommendations-table thead {
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.1) 0%, rgba(0, 200, 83, 0.05) 100%);
+}
+
+.recommendations-table th {
+    padding: var(--space-md) var(--space-lg);
+    text-align: left;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
+}
+
+.recommendations-table th:first-child {
+    border-right: 1px solid var(--border);
+}
+
+.recommendations-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.recommendations-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.recommendations-table tbody tr:hover {
+    background: rgba(0, 200, 83, 0.03);
+}
+
+.recommendations-table td {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1rem;
+}
+
+.recommendation-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.recommendation-quantity {
+    color: var(--secondary);
+    font-weight: 600;
+    font-family: var(--font-mono);
+}
+
+.recommendations-footer {
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-md);
+}
+
+.recommendations-footer p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+.recommendations-text p {
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.7;
+}
+
+.recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.recommendations-intro {
+    display: none;
+}
+
+.recommendations-error {
+    padding: var(--space-lg);
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: var(--radius);
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    text-align: center;
+}
+
+.recommendations-error p {
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--text-primary);
+}
+
+.recommendations-error .error-detail {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.recommendations-error .error-hint {
+    font-size: 0.8125rem;
+    color: var(--text-light);
+    margin-top: var(--space-sm);
+}
+
+/* Detailed Recommendations Section */
+.detailed-recommendations-section {
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    padding: calc(var(--space-xl) * 1.2);
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+    border-top: 3px solid var(--primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    animation: slideUpScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: 1.4s;
+    position: relative;
+    overflow: hidden;
+}
+
+.detailed-recommendations-section::before {
     content: '';
     position: absolute;
-    left: 0;
     top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(180deg, var(--secondary), var(--primary));
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        var(--primary) 20%,
+        var(--secondary) 50%,
+        var(--primary) 80%,
+        transparent 100%);
+    animation: borderGlow 2s ease-in-out infinite;
+    z-index: 1;
 }
 
-.recommendation-item:hover {
-    transform: translateX(4px);
-    border-color: var(--secondary);
-    box-shadow: 0 4px 12px rgba(0, 200, 83, 0.15);
+.detailed-recommendations-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+    position: relative;
+    z-index: 2;
 }
 
-.recommendation-item:hover::before {
-    transform: scaleY(1);
+.detailed-recommendations-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-sm);
+    animation: iconBounce 1s ease-out 0.3s both;
 }
 
-.recommendation-item:nth-child(1) {
-    animation-delay: 1.6s;
+.detailed-recommendations-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-tech);
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: titleSlideIn 0.6s ease-out 0.4s both;
 }
 
-.recommendation-item:nth-child(2) {
-    animation-delay: 1.7s;
+.detailed-recommendations-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: var(--space-md);
+    animation: subtitleFadeIn 0.6s ease-out 0.5s both;
 }
 
-.recommendation-item:nth-child(3) {
-    animation-delay: 1.8s;
+.detailed-recommendations-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    position: relative;
+    z-index: 2;
 }
 
-.recommendation-item:nth-child(4) {
-    animation-delay: 1.9s;
+.recommendation-section-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: var(--space-lg);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    animation: cardSlideIn 0.4s ease-out both;
+    transition: all 0.2s ease;
 }
 
-.recommendation-item:nth-child(5) {
-    animation-delay: 2.0s;
+.recommendation-section-card:nth-child(1) {
+    animation-delay: 0.1s;
 }
 
-.plant-name {
+.recommendation-section-card:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.recommendation-section-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.recommendation-section-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border);
+}
+
+.section-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.section-title {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
-    flex: 1;
+    margin: 0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.section-content {
+    color: var(--text-primary);
+    line-height: 1.7;
+    padding-top: var(--space-sm);
+}
+
+.recommendation-paragraph {
+    margin: 0 0 var(--space-md) 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.7;
+}
+
+.recommendation-item-text {
+    margin: 0 0 var(--space-sm) 0;
+    padding-left: calc(var(--space-md) + 8px);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.7;
+    position: relative;
+    opacity: 0;
+    animation: fadeInSlide 0.4s ease-out forwards;
+}
+
+.recommendation-item-text::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.recommendation-item-text:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.reset-button {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: transparent;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-xs);
-}
-
-.plant-name::before {
-    content: '🌱';
-    font-size: 1.25rem;
-    display: inline-block;
-}
-
-.plant-quantity {
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--secondary);
-    font-family: var(--font-mono);
-    white-space: nowrap;
-}
-
-.no-recommendations {
-    text-align: center;
-    color: var(--text-secondary);
-    font-style: italic;
-    padding: var(--space-lg);
+    position: relative;
+    overflow: hidden;
+    animation: buttonFadeIn 0.6s ease-out 1.1s both;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .reset-icon {
@@ -1475,22 +1694,52 @@ body::before {
         font-size: 2rem;
     }
     
-    .plant-recommendations {
-        padding: calc(var(--space-lg) * 1.2);
+    .recommendations-section {
+        padding: var(--space-lg);
     }
     
     .recommendations-title {
+        font-size: 1.25rem;
+    }
+    
+    .recommendations-table th,
+    .recommendations-table td {
+        padding: var(--space-sm) var(--space-md);
+        font-size: 0.9375rem;
+    }
+    
+    .recommendations-footer {
+        font-size: 0.8125rem;
+        padding: var(--space-sm);
+    }
+    
+    .detailed-recommendations-section {
+        padding: var(--space-lg);
+    }
+    
+    .detailed-recommendations-title {
+        font-size: 1.25rem;
+    }
+    
+    .detailed-recommendations-icon {
+        font-size: 2rem;
+    }
+    
+    .recommendation-section-card {
+        padding: var(--space-md);
+    }
+    
+    .section-title {
+        font-size: 0.9375rem;
+    }
+    
+    .section-icon {
         font-size: 1.125rem;
     }
     
-    .recommendation-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-xs);
-    }
-    
-    .plant-quantity {
-        margin-left: 1.5rem;
+    .recommendation-paragraph,
+    .recommendation-item-text {
+        font-size: 0.875rem;
     }
 }
 

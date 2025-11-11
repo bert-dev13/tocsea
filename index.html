@@ -148,14 +148,60 @@
                         </div>
                     </div>
 
-                    <div class="plant-recommendations" id="plantRecommendations">
+                    <!-- AI Recommendations Section -->
+                    <div class="recommendations-section" id="recommendationsSection" style="display: none;">
                         <div class="recommendations-header">
-                            <div class="recommendations-icon">🌿</div>
-                            <h3 class="recommendations-title">Plant Recommendations</h3>
-                            <p class="recommendations-subtitle">Rekomendasyon sa Pagtatanim</p>
+                            <div class="recommendations-icon">🌳</div>
+                            <h3 class="recommendations-title">Recommended Vegetation</h3>
+                            <p class="recommendations-subtitle">Mga Inirerekomendang Puno at Halaman</p>
                         </div>
-                        <div class="recommendations-content" id="recommendationsContent">
-                            <!-- Plant recommendations will be inserted here -->
+                        <div class="recommendations-content">
+                            <div class="recommendations-loading" id="recommendationsLoading" style="display: none;">
+                                <div class="loading-spinner"></div>
+                                <p>Analyzing and generating recommendations...</p>
+                            </div>
+                            <div class="recommendations-text" id="recommendationsText"></div>
+                            <div class="recommendations-footer" id="recommendationsFooter" style="display: none;">
+                                <p>🌿 These recommendations are AI-generated using DeepSeek analysis and may vary based on local climate and terrain conditions.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Recommendations Section -->
+                    <div class="detailed-recommendations-section" id="detailedRecommendationsSection" style="display: none;">
+                        <div class="detailed-recommendations-header">
+                            <div class="detailed-recommendations-icon">📋</div>
+                            <h3 class="detailed-recommendations-title">Detailed Recommendations</h3>
+                            <p class="detailed-recommendations-subtitle">Mga Detalyadong Rekomendasyon</p>
+                        </div>
+                        
+                        <div class="detailed-recommendations-content">
+                            <!-- Section 1: Based on Soil Loss -->
+                            <div class="recommendation-section-card" id="soilLossRecommendations" style="display: none;">
+                                <div class="section-header">
+                                    <div class="section-icon">📉</div>
+                                    <h4 class="section-title">Recommendations Based on Predicted Soil Loss</h4>
+                                </div>
+                                <div class="section-content" id="soilLossContent"></div>
+                            </div>
+
+                            <!-- Section 2: Based on Soil Type -->
+                            <div class="recommendation-section-card" id="soilTypeRecommendations" style="display: none;">
+                                <div class="section-header">
+                                    <div class="section-icon">🌱</div>
+                                    <h4 class="section-title">Recommendations Based on Selected Soil Type</h4>
+                                </div>
+                                <div class="section-content" id="soilTypeContent"></div>
+                            </div>
+
+                            <!-- Section 3: For Vegetation -->
+                            <div class="recommendation-section-card" id="vegetationRecommendations" style="display: none;">
+                                <div class="section-header">
+                                    <div class="section-icon">🌳</div>
+                                    <h4 class="section-title">Recommendations for Recommended Vegetation</h4>
+                                </div>
+                                <div class="section-content" id="vegetationContent"></div>
+                            </div>
                         </div>
                     </div>
 
