@@ -30,6 +30,9 @@ const vegetationRecommendations = document.getElementById('vegetationRecommendat
 const soilLossContent = document.getElementById('soilLossContent');
 const soilTypeContent = document.getElementById('soilTypeContent');
 const vegetationContent = document.getElementById('vegetationContent');
+const exportButtonsWrapper = document.getElementById('exportButtonsWrapper');
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+const copyClipboardBtn = document.getElementById('copyClipboardBtn');
 
 // API Configuration
 const API_BASE_URL = '/api';
@@ -132,6 +135,13 @@ function displayResults(soilLoss, soilType) {
     
     // Show results section with animation
     resultsSection.style.display = 'block';
+    
+    // Show export buttons
+    exportButtonsWrapper.style.display = 'flex';
+    
+    // Store data for export
+    window.currentSoilLoss = soilLoss;
+    window.currentSoilType = getSoilTypeDisplayName(soilType);
     
     // Fetch and display AI recommendations
     fetchRecommendations(soilLoss, getSoilTypeDisplayName(soilType));
@@ -396,8 +406,8 @@ function formatRecommendations(recommendations, soilLoss, soilType) {
     html += '<tbody>';
     items.forEach(item => {
         html += `<tr>
-            <td class="recommendation-name">${item.name}</td>
-            <td class="recommendation-quantity">${item.quantity}</td>
+            <td class="recommendation-name" data-label="Tree/Plant">${item.name}</td>
+            <td class="recommendation-quantity" data-label="Recommended Quantity">${item.quantity}</td>
         </tr>`;
     });
     html += '</tbody></table>';
@@ -520,6 +530,437 @@ function formatRecommendationText(text) {
     return html || '';
 }
 
+/**
+ * Gets formatted text content from recommendations
+ * @returns {string} Plain text recommendations
+ */
+function getRecommendationsText() {
+    const recommendationsElement = document.getElementById('recommendationsText');
+    if (!recommendationsElement) return '';
+    
+    // Get text content from table if available
+    let text = '';
+    const table = recommendationsElement.querySelector('table');
+    if (table) {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const name = row.querySelector('.recommendation-name')?.textContent || '';
+            const quantity = row.querySelector('.recommendation-quantity')?.textContent || '';
+            if (name && quantity) {
+                text += `• ${name} - ${quantity}\n`;
+            }
+        });
+    } else {
+        text = recommendationsElement.textContent || '';
+    }
+    
+    // Add detailed recommendations if available
+    const detailedSections = [
+        { id: 'soilLossContent', label: 'Based on Predicted Soil Loss' },
+        { id: 'soilTypeContent', label: 'Based on Selected Soil Type' },
+        { id: 'vegetationContent', label: 'For Recommended Vegetation' }
+    ];
+    
+    detailedSections.forEach(section => {
+        const element = document.getElementById(section.id);
+        if (element && element.textContent.trim()) {
+            text += `\n${section.label}:\n${element.textContent.trim()}\n`;
+        }
+    });
+    
+    return text.trim();
+}
+
+/**
+ * Gets all input values for export
+ * @returns {Object} Form data object
+ */
+function getFormData() {
+    return {
+        seawallLength: document.getElementById('seawallLength').value,
+        typhoons: document.getElementById('typhoons').value,
+        floods: document.getElementById('floods').value,
+        soilType: document.getElementById('soilType').value
+    };
+}
+
+/**
+ * Gets the jsPDF library, checking multiple possible locations
+ * @returns {Function|null} jsPDF constructor or null if not found
+ */
+function getJsPDFLibrary() {
+    // Try UMD module format first (most common for CDN)
+    if (typeof window.jsPDF !== 'undefined') {
+        if (window.jsPDF.jsPDF) {
+            return window.jsPDF.jsPDF;
+        }
+        // Check if it's the constructor directly
+        if (typeof window.jsPDF === 'function') {
+            return window.jsPDF;
+        }
+        // Check if it has a default export
+        if (window.jsPDF.default && typeof window.jsPDF.default === 'function') {
+            return window.jsPDF.default;
+        }
+    }
+    
+    // Try alternative naming
+    if (typeof window.jspdf !== 'undefined') {
+        if (window.jspdf.jsPDF) {
+            return window.jspdf.jsPDF;
+        }
+        if (typeof window.jspdf === 'function') {
+            return window.jspdf;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Downloads results as PDF
+ */
+function downloadPDF() {
+    // Get jsPDF library
+    const jsPDF = getJsPDFLibrary();
+    
+    if (!jsPDF) {
+        // Try waiting a bit and retrying (in case library is still loading)
+        setTimeout(() => {
+            const retryJsPDF = getJsPDFLibrary();
+            if (!retryJsPDF) {
+                alert('PDF library could not be loaded. Please:\n\n1. Check your internet connection\n2. Refresh the page\n3. Try using a different browser\n\nIf the problem persists, the PDF feature may not be available.');
+                console.error('jsPDF library not found after retry. Window object keys:', Object.keys(window).filter(k => k.toLowerCase().includes('pdf')));
+            } else {
+                // Retry the download
+                downloadPDF();
+            }
+        }, 500);
+        return;
+    }
+    
+    try {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const contentWidth = pageWidth - (margin * 2);
+        
+        // Get current data
+        const soilLoss = window.currentSoilLoss || 0;
+        const soilType = window.currentSoilType || 'N/A';
+        const formData = getFormData();
+        const recommendations = getRecommendationsText();
+        
+        // Set up colors
+        const primaryColor = [0, 102, 255]; // #0066ff
+        const primaryLight = [230, 240, 255]; // Light blue background
+        const secondaryColor = [0, 200, 83]; // #00c853
+        const lightGray = [245, 245, 245];
+        const darkGray = [64, 64, 64];
+        const textGray = [102, 102, 102];
+        
+        // Helper function to add a section box
+        function addSectionBox(y, height, fillColor = null) {
+            if (fillColor) {
+                doc.setFillColor(...fillColor);
+                doc.rect(margin, y, contentWidth, height, 'F');
+            }
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.5);
+            doc.rect(margin, y, contentWidth, height, 'S');
+        }
+        
+        // Helper function to check page break
+        function checkPageBreak(requiredHeight) {
+            if (yPos + requiredHeight > pageHeight - 40) {
+                doc.addPage();
+                yPos = margin;
+                return true;
+            }
+            return false;
+        }
+        
+        let yPos = margin;
+        
+        // ========== HEADER SECTION ==========
+        // Header background
+        doc.setFillColor(...primaryLight);
+        doc.rect(0, 0, pageWidth, 45, 'F');
+        
+        // Header border
+        doc.setDrawColor(...primaryColor);
+        doc.setLineWidth(2);
+        doc.line(0, 45, pageWidth, 45);
+        
+        // Title
+        yPos = 20;
+        doc.setFontSize(22);
+        doc.setTextColor(...primaryColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Coastal Soil Erosion Prediction Report', pageWidth / 2, yPos, { align: 'center' });
+        
+        // Subtitle
+        yPos += 8;
+        doc.setFontSize(11);
+        doc.setTextColor(...textGray);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Sistema ng Paghula ng Pagguho ng Lupa sa Baybayin', pageWidth / 2, yPos, { align: 'center' });
+        
+        // Date
+        yPos += 6;
+        doc.setFontSize(9);
+        doc.setTextColor(...darkGray);
+        const reportDate = new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        doc.text(`Generated on: ${reportDate}`, pageWidth / 2, yPos, { align: 'center' });
+        
+        yPos = 55;
+        
+        // ========== KEY METRICS SECTION ==========
+        checkPageBreak(50);
+        
+        // Section header
+        doc.setFontSize(14);
+        doc.setTextColor(...darkGray);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Key Metrics', margin, yPos);
+        yPos += 10;
+        
+        // Predicted Soil Loss Box
+        const soilLossBoxHeight = 35;
+        addSectionBox(yPos, soilLossBoxHeight, primaryLight);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(...textGray);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Predicted Soil Loss', margin + 5, yPos + 7);
+        
+        doc.setFontSize(28);
+        doc.setTextColor(...primaryColor);
+        doc.setFont('helvetica', 'bold');
+        const soilLossText = formatNumber(soilLoss) + ' metric tons/year';
+        const soilLossTextWidth = doc.getTextWidth(soilLossText);
+        doc.text(soilLossText, margin + (contentWidth / 2) - (soilLossTextWidth / 2), yPos + 22);
+        
+        yPos += soilLossBoxHeight + 10;
+        
+        // Soil Type Box
+        checkPageBreak(30);
+        const soilTypeBoxHeight = 28;
+        addSectionBox(yPos, soilTypeBoxHeight, lightGray);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(...darkGray);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Selected Soil Type', margin + 5, yPos + 8);
+        
+        doc.setFontSize(14);
+        doc.setTextColor(...secondaryColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text(soilType, margin + contentWidth - 5 - doc.getTextWidth(soilType), yPos + 8);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(...textGray);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Napiling Uri ng Lupa', margin + 5, yPos + 20);
+        
+        yPos += soilTypeBoxHeight + 15;
+        
+        // ========== INPUT PARAMETERS SECTION ==========
+        checkPageBreak(60);
+        
+        // Section header
+        doc.setFontSize(14);
+        doc.setTextColor(...darkGray);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Input Parameters', margin, yPos);
+        yPos += 8;
+        
+        // Parameters box
+        const paramBoxHeight = 50;
+        addSectionBox(yPos, paramBoxHeight, [255, 255, 255]);
+        
+        const paramStartY = yPos + 5;
+        let paramY = paramStartY;
+        const paramLeftCol = margin + 8;
+        const paramRightCol = margin + contentWidth / 2 + 10;
+        const paramLineHeight = 7;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(...darkGray);
+        doc.setFont('helvetica', 'normal');
+        
+        // Left column
+        doc.setFont('helvetica', 'bold');
+        doc.text('Seawall Length:', paramLeftCol, paramY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${formData.seawallLength} m`, paramLeftCol + 50, paramY);
+        
+        paramY += paramLineHeight;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Typhoons per Year:', paramLeftCol, paramY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${formData.typhoons}`, paramLeftCol + 50, paramY);
+        
+        paramY += paramLineHeight;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Floods per Year:', paramLeftCol, paramY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${formData.floods}`, paramLeftCol + 50, paramY);
+        
+        // Right column
+        paramY = paramStartY;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Soil Type:', paramRightCol, paramY);
+        doc.setFont('helvetica', 'normal');
+        doc.text(soilType, paramRightCol + 40, paramY);
+        
+        yPos += paramBoxHeight + 15;
+        
+        // ========== RECOMMENDATIONS SECTION ==========
+        if (recommendations) {
+            checkPageBreak(40);
+            
+            // Section header
+            doc.setFontSize(14);
+            doc.setTextColor(...darkGray);
+            doc.setFont('helvetica', 'bold');
+            doc.text('AI-Powered Recommendations', margin, yPos);
+            yPos += 10;
+            
+            // Recommendations container
+            yPos += 5;
+            
+            doc.setFontSize(10);
+            doc.setTextColor(...darkGray);
+            doc.setFont('helvetica', 'normal');
+            
+            // Split recommendations into lines
+            const lines = recommendations.split('\n').filter(line => line.trim());
+            
+            // Draw recommendations with proper formatting
+            lines.forEach((line) => {
+                checkPageBreak(15);
+                
+                // Check if it's a section header
+                if (line.endsWith(':')) {
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(11);
+                    doc.setTextColor(...primaryColor);
+                    yPos += 3;
+                } else {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(10);
+                    doc.setTextColor(...darkGray);
+                    
+                    // Bullet point
+                    doc.setFillColor(...primaryColor);
+                    doc.circle(margin + 8, yPos - 2, 1.5, 'F');
+                }
+                
+                // Text
+                const textX = line.endsWith(':') ? margin + 5 : margin + 15;
+                const textWidth = contentWidth - (line.endsWith(':') ? 10 : 20);
+                const cleanLine = line.replace(/^[•\-\*\d\.\)]\s+/, '').trim();
+                const splitText = doc.splitTextToSize(cleanLine, textWidth);
+                
+                splitText.forEach((textLine) => {
+                    if (yPos > pageHeight - 45) {
+                        doc.addPage();
+                        yPos = margin + 5;
+                    }
+                    doc.text(textLine, textX, yPos);
+                    yPos += 5;
+                });
+                
+                yPos += 3; // Space between items
+            });
+            
+            yPos += 5;
+        }
+        
+        // ========== FOOTER ==========
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            
+            // Footer line
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.5);
+            doc.line(margin, pageHeight - 20, pageWidth - margin, pageHeight - 20);
+            
+            // Footer text
+            doc.setFontSize(8);
+            doc.setTextColor(...textGray);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+                `Page ${i} of ${pageCount} | Coastal Soil Erosion Prediction System | ${reportDate}`,
+                pageWidth / 2,
+                pageHeight - 12,
+                { align: 'center' }
+            );
+        }
+        
+        // Save PDF
+        const fileName = `Coastal_Soil_Erosion_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        doc.save(fileName);
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('An error occurred while generating the PDF. Please try again.\n\nError: ' + error.message);
+    }
+}
+
+/**
+ * Copies results to clipboard
+ */
+async function copyToClipboard() {
+    const soilLoss = window.currentSoilLoss || 0;
+    const soilType = window.currentSoilType || 'N/A';
+    const formData = getFormData();
+    const recommendations = getRecommendationsText();
+    
+    const text = `Coastal Soil Erosion Prediction Report
+===============================
+
+Predicted Soil Loss: ${formatNumber(soilLoss)} metric tons per year
+
+Selected Soil Type: ${soilType}
+
+Input Parameters:
+- Seawall Length: ${formData.seawallLength} m
+- Typhoons per Year: ${formData.typhoons}
+- Floods per Year: ${formData.floods}
+- Soil Type: ${soilType}
+
+AI-Powered Recommendations:
+${recommendations || 'No recommendations available.'}
+
+Generated by Coastal Soil Erosion Prediction System
+Date: ${new Date().toLocaleDateString()}
+`;
+    
+    try {
+        await navigator.clipboard.writeText(text);
+        
+        // Show success feedback
+        const originalText = copyClipboardBtn.querySelector('span:last-child').textContent;
+        copyClipboardBtn.querySelector('span:last-child').textContent = 'Copied!';
+        copyClipboardBtn.style.backgroundColor = '#00c853';
+        
+        setTimeout(() => {
+            copyClipboardBtn.querySelector('span:last-child').textContent = originalText;
+            copyClipboardBtn.style.backgroundColor = '';
+        }, 2000);
+    } catch (err) {
+        console.error('Failed to copy to clipboard:', err);
+        alert('Failed to copy to clipboard. Please try again or use the PDF download option.');
+    }
+}
+
 function resetResults() {
     resultsSection.style.display = 'none';
     recommendationsSection.style.display = 'none';
@@ -531,6 +972,7 @@ function resetResults() {
     soilLossRecommendations.style.display = 'none';
     soilTypeRecommendations.style.display = 'none';
     vegetationRecommendations.style.display = 'none';
+    exportButtonsWrapper.style.display = 'none';
     const footer = document.getElementById('recommendationsFooter');
     if (footer) {
         footer.style.display = 'none';
@@ -542,6 +984,10 @@ function resetResults() {
     inputs.forEach(input => {
         input.classList.remove('valid', 'invalid');
     });
+    
+    // Clear stored data
+    window.currentSoilLoss = null;
+    window.currentSoilType = null;
     
     // Scroll back to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -661,6 +1107,15 @@ function initializeEventListeners() {
     
     // Reset button
     resetBtn.addEventListener('click', resetResults);
+    
+    // Export buttons
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', downloadPDF);
+    }
+    
+    if (copyClipboardBtn) {
+        copyClipboardBtn.addEventListener('click', copyToClipboard);
+    }
     
     // Real-time input validation
     const inputs = form.querySelectorAll('.form-input, .form-select');

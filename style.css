@@ -10,6 +10,12 @@
     box-sizing: border-box;
 }
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 :root {
     /* Color Palette - Refined & Minimalist */
     --primary: #0066ff;
@@ -182,6 +188,9 @@ body::before {
     padding-top: calc(110px + var(--space-md)); /* Account for fixed navbar */
     position: relative;
     z-index: 1;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 /* Container - Constrained width, centered */
@@ -190,6 +199,7 @@ body::before {
     max-width: 900px;
     margin: 0 auto;
     animation: containerFadeIn 0.8s ease-out;
+    padding: 0 var(--space-sm);
 }
 
 /* Header Styles */
@@ -396,6 +406,9 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Input Section */
@@ -406,6 +419,9 @@ body::before {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     animation: slideUp 0.6s ease-out 0.4s both;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .input-section:hover {
@@ -666,6 +682,8 @@ body::before {
     border-top: 3px solid var(--secondary);
     position: relative;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
 }
 
 .results-section::before {
@@ -763,6 +781,8 @@ body::before {
     grid-template-columns: 1fr;
     gap: var(--space-lg);
     margin-bottom: var(--space-xl);
+    width: 100%;
+    max-width: 100%;
 }
 
 .result-card {
@@ -776,6 +796,8 @@ body::before {
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 100%;
 }
 
 .result-card::before {
@@ -978,6 +1000,8 @@ body::before {
     animation-delay: 1.2s;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
 }
 
 .recommendations-section::before {
@@ -1076,6 +1100,7 @@ body::before {
 
 .recommendations-table {
     width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
     margin: var(--space-lg) 0;
     background: var(--surface);
@@ -1083,6 +1108,8 @@ body::before {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     animation: fadeIn 0.5s ease-out;
+    display: table;
+    table-layout: fixed;
 }
 
 .recommendations-table thead {
@@ -1098,10 +1125,17 @@ body::before {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 2px solid var(--border);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .recommendations-table th:first-child {
     border-right: 1px solid var(--border);
+    width: 60%;
+}
+
+.recommendations-table th:last-child {
+    width: 40%;
 }
 
 .recommendations-table tbody tr {
@@ -1120,6 +1154,9 @@ body::before {
 .recommendations-table td {
     padding: var(--space-md) var(--space-lg);
     font-size: 1rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .recommendation-name {
@@ -1209,6 +1246,8 @@ body::before {
     animation-delay: 1.4s;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
 }
 
 .detailed-recommendations-section::before {
@@ -1276,6 +1315,9 @@ body::before {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     animation: cardSlideIn 0.4s ease-out both;
     transition: all 0.2s ease;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .recommendation-section-card:nth-child(1) {
@@ -1322,6 +1364,10 @@ body::before {
     color: var(--text-primary);
     line-height: 1.7;
     padding-top: var(--space-sm);
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .recommendation-paragraph {
@@ -1365,6 +1411,97 @@ body::before {
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+/* Export Buttons */
+.export-buttons-wrapper {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-lg);
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.6s ease-out 0.8s both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.export-button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: 0.875rem 1.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--surface);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.2);
+}
+
+.export-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.export-button:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+.export-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 102, 255, 0.3);
+    background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary) 100%);
+}
+
+.export-button:active {
+    transform: translateY(0);
+}
+
+.export-button.clipboard-button {
+    background: linear-gradient(135deg, var(--secondary) 0%, #00a844 100%);
+    box-shadow: 0 4px 12px rgba(0, 200, 83, 0.2);
+}
+
+.export-button.clipboard-button:hover {
+    background: linear-gradient(135deg, #00a844 0%, var(--secondary) 100%);
+    box-shadow: 0 6px 16px rgba(0, 200, 83, 0.3);
+}
+
+.export-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.export-button:hover .export-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
 .reset-button {
@@ -1543,6 +1680,39 @@ body::before {
     .app-wrapper {
         padding-top: calc(100px + var(--space-md));
     }
+    
+    .input-section,
+    .results-section,
+    .recommendations-section,
+    .detailed-recommendations-section {
+        padding: var(--space-md);
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .container {
+        padding: 0 var(--space-sm);
+    }
+    
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .recommendations-table {
+        font-size: 0.875rem;
+    }
+    
+    .recommendations-table th,
+    .recommendations-table td {
+        padding: var(--space-sm) var(--space-md);
+    }
+    
+    .recommendation-section-card {
+        padding: var(--space-md);
+    }
 }
 
 /* Tablet */
@@ -1575,8 +1745,22 @@ body::before {
         font-size: 0.9375rem;
     }
     
+    .input-section,
+    .results-section,
+    .recommendations-section,
+    .detailed-recommendations-section {
+        padding: calc(var(--space-xl) * 1.2);
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .container {
+        padding: 0 var(--space-md);
+    }
+    
     .results-grid {
         grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
     }
     
     .result-value {
@@ -1585,6 +1769,27 @@ body::before {
     
     .result-value.highlight-value {
         font-size: 2.5rem;
+    }
+    
+    .recommendations-table {
+        margin: var(--space-lg) 0;
+    }
+    
+    .recommendations-table th,
+    .recommendations-table td {
+        padding: var(--space-md) var(--space-lg);
+    }
+    
+    .recommendation-section-card {
+        padding: var(--space-lg);
+    }
+    
+    .section-header {
+        gap: var(--space-md);
+    }
+    
+    .section-title {
+        font-size: 1.0625rem;
     }
 }
 
@@ -1608,8 +1813,28 @@ body::before {
     }
     
     .input-section,
-    .results-section {
+    .results-section,
+    .recommendations-section,
+    .detailed-recommendations-section {
         padding: calc(var(--space-xl) * 1.5) 4rem;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .container {
+        padding: 0 var(--space-lg);
+    }
+    
+    .results-grid {
+        gap: var(--space-xl);
+    }
+    
+    .recommendations-table {
+        margin: var(--space-xl) 0;
+    }
+    
+    .detailed-recommendations-content {
+        gap: var(--space-lg);
     }
 }
 
@@ -1648,6 +1873,9 @@ body::before {
         padding: var(--space-sm);
         align-items: flex-start;
         padding-top: calc(90px + var(--space-lg));
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
     }
     
     .header {
@@ -1663,8 +1891,18 @@ body::before {
     }
     
     .input-section,
-    .results-section {
-        padding: calc(var(--space-lg) * 1.2);
+    .results-section,
+    .recommendations-section,
+    .detailed-recommendations-section {
+        padding: var(--space-md);
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .container {
+        padding: 0 var(--space-xs);
     }
     
     .label-primary {
@@ -1694,52 +1932,222 @@ body::before {
         font-size: 2rem;
     }
     
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .result-card {
+        padding: var(--space-md);
+    }
+    
+    .result-card-icon {
+        font-size: 2rem;
+    }
+    
+    .result-label {
+        font-size: 0.875rem;
+    }
+    
+    .result-label-secondary {
+        font-size: 0.75rem;
+    }
+    
     .recommendations-section {
         padding: var(--space-lg);
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .recommendations-header {
+        margin-bottom: var(--space-lg);
+    }
+    
+    .recommendations-icon {
+        font-size: 2.5rem;
     }
     
     .recommendations-title {
         font-size: 1.25rem;
     }
     
+    .recommendations-subtitle {
+        font-size: 0.8125rem;
+    }
+    
+    .recommendations-table {
+        margin: var(--space-md) 0;
+        font-size: 0.875rem;
+    }
+    
     .recommendations-table th,
     .recommendations-table td {
         padding: var(--space-sm) var(--space-md);
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
+    }
+    
+    .recommendation-name,
+    .recommendation-quantity {
+        font-size: 0.875rem;
     }
     
     .recommendations-footer {
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
         padding: var(--space-sm);
+        margin-top: var(--space-md);
     }
     
     .detailed-recommendations-section {
         padding: var(--space-lg);
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-lg);
     }
     
-    .detailed-recommendations-title {
-        font-size: 1.25rem;
+    .detailed-recommendations-header {
+        margin-bottom: var(--space-lg);
     }
     
     .detailed-recommendations-icon {
         font-size: 2rem;
     }
     
+    .detailed-recommendations-title {
+        font-size: 1.125rem;
+    }
+    
+    .detailed-recommendations-subtitle {
+        font-size: 0.8125rem;
+    }
+    
+    .detailed-recommendations-content {
+        gap: var(--space-md);
+    }
+    
     .recommendation-section-card {
         padding: var(--space-md);
     }
     
-    .section-title {
-        font-size: 0.9375rem;
+    .section-header {
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+        padding-bottom: var(--space-sm);
     }
     
     .section-icon {
-        font-size: 1.125rem;
+        font-size: 1rem;
     }
     
-    .recommendation-paragraph,
-    .recommendation-item-text {
+    .section-title {
         font-size: 0.875rem;
+    }
+    
+    .section-content {
+        padding-top: var(--space-xs);
+    }
+    
+    .recommendation-paragraph {
+        font-size: 0.8125rem;
+        margin-bottom: var(--space-sm);
+    }
+    
+    .recommendation-item-text {
+        font-size: 0.8125rem;
+        padding-left: calc(var(--space-md) + 6px);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .recommendation-item-text::before {
+        font-size: 1rem;
+    }
+    
+    /* Mobile table responsive - convert to card layout */
+    .recommendations-table {
+        display: block;
+        overflow-x: visible;
+    }
+    
+    .recommendations-table thead {
+        display: none;
+    }
+    
+    .recommendations-table tbody {
+        display: block;
+    }
+    
+    .recommendations-table tr {
+        display: block;
+        margin-bottom: var(--space-md);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: var(--space-md);
+        background: var(--surface);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .recommendations-table tr:last-child {
+        margin-bottom: 0;
+    }
+    
+    .recommendations-table td {
+        display: block;
+        text-align: left;
+        padding: var(--space-xs) 0;
+        border: none;
+    }
+    
+    .recommendations-table td:first-child {
+        padding-top: 0;
+        font-weight: 600;
+        margin-bottom: var(--space-xs);
+        font-size: 0.9375rem;
+    }
+    
+    .recommendations-table td:last-child {
+        padding-bottom: 0;
+    }
+    
+    .recommendations-table td:before {
+        content: attr(data-label) ": ";
+        font-weight: 700;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        display: inline-block;
+        margin-right: var(--space-xs);
+    }
+    
+    .recommendation-name {
+        font-weight: 600;
+    }
+    
+    .recommendation-quantity {
+        color: var(--secondary);
+        font-weight: 600;
+    }
+    
+    .result-value-wrapper {
+        padding: var(--space-sm);
+        margin: var(--space-sm) 0;
+    }
+    
+    .result-value {
+        font-size: 1.5rem;
+    }
+    
+    .section-header {
+        flex-wrap: wrap;
+    }
+    
+    .section-title {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+    }
+    
+    .recommendations-content,
+    .detailed-recommendations-content {
+        width: 100%;
+        max-width: 100%;
     }
 }
 
@@ -1770,5 +2178,16 @@ body::before {
     .predict-button,
     .reset-button {
         display: none;
+    }
+    
+    .export-buttons-wrapper {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .export-button {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
     }
 }

@@ -148,6 +148,18 @@
                         </div>
                     </div>
 
+                    <!-- Export Buttons -->
+                    <div class="export-buttons-wrapper" id="exportButtonsWrapper" style="display: none;">
+                        <button type="button" class="export-button pdf-button" id="downloadPdfBtn">
+                            <span class="export-icon">📄</span>
+                            <span>Download PDF</span>
+                        </button>
+                        <button type="button" class="export-button clipboard-button" id="copyClipboardBtn">
+                            <span class="export-icon">📋</span>
+                            <span>Copy to Clipboard</span>
+                        </button>
+                    </div>
+
                     <!-- AI Recommendations Section -->
                     <div class="recommendations-section" id="recommendationsSection" style="display: none;">
                         <div class="recommendations-header">
@@ -214,6 +226,31 @@
         </div>
     </div>
 
+    <!-- Load jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Verify jsPDF is loaded and log for debugging
+        (function() {
+            function checkJsPDF() {
+                if (window.jsPDF && window.jsPDF.jsPDF) {
+                    console.log('✓ jsPDF library loaded successfully (window.jsPDF.jsPDF)');
+                    return true;
+                } else if (typeof window.jsPDF === 'function') {
+                    console.log('✓ jsPDF library loaded successfully (window.jsPDF function)');
+                    return true;
+                } else {
+                    console.warn('⚠ jsPDF library not found. Available:', Object.keys(window).filter(k => k.toLowerCase().includes('pdf')));
+                    return false;
+                }
+            }
+            
+            // Check immediately
+            if (!checkJsPDF()) {
+                // Check again after a short delay in case it's still loading
+                setTimeout(checkJsPDF, 100);
+            }
+        })();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
