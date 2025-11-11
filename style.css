@@ -1062,6 +1062,11 @@ body::before {
     margin-bottom: var(--space-lg);
     position: relative;
     z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .recommendations-icon {
@@ -1084,6 +1089,12 @@ body::before {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    line-height: 1.3;
 }
 
 .recommendations-subtitle {
@@ -1092,6 +1103,11 @@ body::before {
     font-weight: 500;
     margin-bottom: var(--space-md);
     animation: subtitleFadeIn 0.6s ease-out 0.5s both;
+    text-align: center;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
 }
 
 .recommendations-content {
@@ -1766,6 +1782,27 @@ body::before {
         padding: var(--space-md);
     }
     
+    .recommendations-header {
+        text-align: center;
+        width: 100%;
+        padding: 0 var(--space-sm);
+    }
+    
+    .recommendations-title {
+        font-size: 1.125rem;
+        letter-spacing: 0.08em;
+        line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .recommendations-subtitle {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
     .detailed-recommendations-header {
         text-align: center;
         width: 100%;
@@ -1865,6 +1902,22 @@ body::before {
         font-size: 1.0625rem;
     }
     
+    .recommendations-header {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .recommendations-title {
+        font-size: 1.375rem;
+        letter-spacing: 0.1em;
+        line-height: 1.3;
+    }
+    
+    .recommendations-subtitle {
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+    
     .detailed-recommendations-header {
         text-align: center;
         width: 100%;
@@ -1916,6 +1969,22 @@ body::before {
     
     .results-grid {
         gap: var(--space-xl);
+    }
+    
+    .recommendations-header {
+        text-align: center;
+        width: 100%;
+    }
+    
+    .recommendations-title {
+        font-size: 1.5rem;
+        letter-spacing: 0.1em;
+        line-height: 1.3;
+    }
+    
+    .recommendations-subtitle {
+        font-size: 0.875rem;
+        line-height: 1.4;
     }
     
     .detailed-recommendations-header {
@@ -2066,18 +2135,30 @@ body::before {
     
     .recommendations-header {
         margin-bottom: var(--space-lg);
+        text-align: center;
+        width: 100%;
+        padding: 0 var(--space-xs);
     }
     
     .recommendations-icon {
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
     
     .recommendations-title {
-        font-size: 1.25rem;
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+        line-height: 1.4;
+        padding: 0 var(--space-xs);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .recommendations-subtitle {
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
+        line-height: 1.4;
+        padding: 0 var(--space-xs);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     
     .recommendations-table {
