@@ -972,6 +972,9 @@ function resetResults() {
     soilLossRecommendations.style.display = 'none';
     soilTypeRecommendations.style.display = 'none';
     vegetationRecommendations.style.display = 'none';
+    
+    // Remove 'submitted' class to reset validation styling
+    form.classList.remove('submitted');
     exportButtonsWrapper.style.display = 'none';
     const footer = document.getElementById('recommendationsFooter');
     if (footer) {
@@ -1056,6 +1059,8 @@ function handleInputValidation(event) {
  * @param {Event} event - Form submit event
  */
 function handleFormSubmit(event) {
+    // Add 'submitted' class to form to show validation errors
+    form.classList.add('submitted');
     event.preventDefault();
     
     // Validate form inputs
