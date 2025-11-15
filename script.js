@@ -1,6 +1,19 @@
 /**
- * Coastal Soil Erosion Prediction System
- * Main JavaScript file for prediction calculations and UI interactions
+ * ================================================================================
+ * TOCSEA - Coastal Soil Erosion Prediction System
+ * Frontend JavaScript Application
+ * ================================================================================
+ * 
+ * This file contains all client-side logic for the TOCSEA system including:
+ * - Soil loss calculation using the prediction formula
+ * - UI state management and updates
+ * - API integration for AI recommendations
+ * - Form validation and user input handling
+ * - PDF export and clipboard functionality
+ * 
+ * Author: TOCSEA Development Team
+ * Version: 1.0.0
+ * ================================================================================
  */
 
 // ============================================
@@ -231,197 +244,267 @@ async function fetchRecommendations(soilLoss, soilType) {
 }
 
 /**
+ * Maps plant names to emoji Unicode codes
+ * @param {string} plantName - Name of the plant
+ * @returns {string} Emoji character
+ */
+function getPlantEmoji(plantName) {
+    const name = plantName.toLowerCase().trim();
+    const emojiMap = {
+        'coconut': '\u{1F334}', // 🌴
+        'pandan': '\u{1F33F}', // 🌿
+        'mahogany': '\u{1F333}', // 🌳
+        'vetiver': '\u{1F33E}', // 🌾
+        'bamboo': '\u{1F33F}', // 🌿
+        'acacia': '\u{1F333}', // 🌳
+        'eucalyptus': '\u{1F333}', // 🌳
+        'casuarina': '\u{1F333}', // 🌳
+        'leucaena': '\u{1F331}', // 🌱
+        'tamarind': '\u{1F333}', // 🌳
+        'terminalia': '\u{1F333}', // 🌳
+        'gmelina': '\u{1F333}', // 🌳
+        'melaleuca': '\u{1F333}', // 🌳
+        'pinus': '\u{1F332}', // 🌲 (pine tree)
+        'pine': '\u{1F332}', // 🌲
+        'grass': '\u{1F33E}', // 🌾
+        'tree': '\u{1F333}', // 🌳
+        'plant': '\u{1F331}', // 🌱
+    };
+    
+    // Check for exact matches first
+    if (emojiMap[name]) {
+        return emojiMap[name];
+    }
+    
+    // Check for partial matches (prioritize longer matches first)
+    const sortedKeys = Object.keys(emojiMap).sort((a, b) => b.length - a.length);
+    for (const key of sortedKeys) {
+        if (name.includes(key)) {
+            return emojiMap[key];
+        }
+    }
+    
+    // Default emoji based on common patterns
+    if (name.includes('tree') || name.includes('wood')) {
+        return '\u{1F333}'; // 🌳
+    } else if (name.includes('grass') || name.includes('vetiver')) {
+        return '\u{1F33E}'; // 🌾
+    } else if (name.includes('bamboo') || name.includes('pandan')) {
+        return '\u{1F33F}'; // 🌿
+    } else if (name.includes('coconut') || name.includes('palm')) {
+        return '\u{1F334}'; // 🌴
+    }
+    
+    // Default fallback
+    return '\u{1F331}'; // 🌱
+}
+
+/**
  * Formats the AI recommendations text for display
- * @param {string} recommendations - Raw recommendations text from AI
+ * @param {string} recommendations - Clean recommendations text from AI (already filtered)
  * @param {number} soilLoss - Predicted soil loss value
  * @param {string} soilType - Selected soil type
  * @returns {string} Formatted HTML string
  */
 function formatRecommendations(recommendations, soilLoss, soilType) {
-    // Extract tree/plant names and quantities from the recommendations
-    const lines = recommendations.split('\n').filter(line => line.trim());
+    // Parse clean recommendations: format is "🌳 Name – number unit"
+    // Handle both multi-line and single-line formats
     const items = [];
     
-    // Pattern to match various formats:
-    // "🌳 Mahogany – 25 trees recommended"
-    // "Mahogany – 25 trees"
-    // "25 – Mahogany trees"
-    const patterns = [
-        /[🌳🌴🌾🌿🌱]?\s*([^–\-:0-9]+?)\s*[–\-:]\s*(\d+)\s*([^–\-:]*)/i,  // Name – Number Unit
-        /(\d+)\s*[–\-:]\s*[🌳🌴🌾🌿🌱]?\s*([^–\-:]+)/i,  // Number – Name
-    ];
+    // Debug: log the raw recommendations
+    console.log('Raw recommendations:', recommendations);
     
-    lines.forEach(line => {
-        const trimmed = line.trim();
-        
-        // Skip empty lines, markdown headers, and intro/explanation text
-        if (!trimmed || 
-            trimmed.startsWith('#') || 
-            trimmed.startsWith('**') ||
-            trimmed.startsWith('*') ||
-            trimmed.toLowerCase().includes('based on') ||
-            trimmed.toLowerCase().includes('okay, so') ||
-            trimmed.toLowerCase().includes('i need to') ||
-            trimmed.toLowerCase().includes('i remember') ||
-            trimmed.toLowerCase().includes('i think') ||
-            trimmed.toLowerCase().includes('maybe') ||
-            trimmed.toLowerCase().includes('hmm') ||
-            trimmed.toLowerCase().includes('wait') ||
-            trimmed.toLowerCase().includes('i\'m not sure') ||
-            trimmed.toLowerCase().includes('i should') ||
-            trimmed.toLowerCase().includes('putting it all together') ||
-            trimmed.toLowerCase().includes('to address') ||
-            trimmed.toLowerCase().includes('important:') ||
-            trimmed.toLowerCase().includes('additional') ||
-            trimmed.toLowerCase().includes('maintenance') ||
-            trimmed.toLowerCase().includes('spacing:') ||
-            trimmed.toLowerCase().includes('benefits:') ||
-            trimmed.toLowerCase().includes('quantity:') ||
-            trimmed.toLowerCase().includes('hectare') ||
-            trimmed.toLowerCase().includes('per hectare') ||
-            (trimmed.toLowerCase().includes('recommended') && !trimmed.match(/\d+/)) ||
-            trimmed.toLowerCase().includes('these species') ||
-            trimmed.toLowerCase().includes('combining') ||
-            trimmed.toLowerCase().includes('provide') ||
-            trimmed.toLowerCase().includes('chosen for') ||
-            trimmed.toLowerCase().includes('promoting') ||
-            trimmed.length > 100) {  // Skip long explanation paragraphs
-            return;
-        }
-        
-        // Try to extract tree name and quantity
-        for (const pattern of patterns) {
-            const match = trimmed.match(pattern);
+    // Normalize the input: replace different dash types but preserve emoji spacing
+    // Don't collapse all spaces - we need to preserve structure around emojis
+    let normalized = recommendations.replace(/[–—―]/g, '-').trim();
+    
+    // First, try to split by newlines (multi-line format)
+    const lines = normalized.split('\n').filter(line => line.trim());
+    
+    // Try multi-line parsing first
+    if (lines.length > 1) {
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            
+            // Match format: (optional emoji/corrupted char) + name + dash + number + unit
+            // Be very flexible to catch corrupted emojis
+            const match = trimmed.match(/^(.{0,3}?)\s*(.+?)\s*-\s*(\d+)\s+(.+)$/);
             if (match) {
-                let name, quantity, unit = '';
+                let emoji = match[1].trim();
+                const name = match[2].trim();
+                const quantity = match[3].trim();
+                const unit = match[4].trim();
                 
-                if (match[1] && match[1].match(/\d+/)) {
-                    // Reversed format: number first (pattern 2)
-                    quantity = match[1];
-                    name = match[2].trim();
+                // Always get emoji from plant name to ensure correct display
+                // Only use the matched emoji if it's a valid plant emoji
+                const validEmojiPattern = /[🌳🌴🌾🌿🌱🌲]/;
+                if (!emoji || !validEmojiPattern.test(emoji) || emoji === '?' || emoji === '') {
+                    emoji = getPlantEmoji(name);
                 } else {
-                    // Normal format: name first (pattern 1)
-                    name = match[1].trim();
-                    quantity = match[2];
-                    unit = match[3] ? match[3].trim() : '';
+                    // Ensure emoji is properly encoded
+                    emoji = emoji.replace(/\uFE0F/g, ''); // Remove variation selector
                 }
                 
-                // Clean up the name (remove emojis, extra words)
-                name = name.replace(/[🌳🌴🌾🌿🌱]/g, '').trim();
-                name = name.replace(/\s*(recommended|trees?|plants?|clumps?|clusters?)\s*$/gi, '').trim();
+                items.push({ 
+                    emoji: emoji,
+                    name: name, 
+                    quantity: `${quantity} ${unit}` 
+                });
+            }
+        });
+    }
+    
+    // If no items found or single line, try single-line parsing
+    if (items.length === 0) {
+        // Use global regex to find all matches in the string
+        // Pattern: (optional emoji/corrupted) + name + dash + number + unit
+        // More flexible pattern that handles various spacing and corrupted emojis
+        const globalPattern = /(.{0,3}?)\s+([^-]+?)\s*-\s*(\d+)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?=\s*.{0,3}?\s+[^-]+?-\s*\d+|$)/g;
+        let match;
+        
+        while ((match = globalPattern.exec(normalized)) !== null) {
+            let emoji = match[1].trim();
+            const name = match[2].trim();
+            const quantity = match[3].trim();
+            const unit = match[4].trim();
+            
+            // Always validate emoji - if corrupted, get it from plant name
+            const validEmojiPattern = /[🌳🌴🌾🌿🌱🌲]/;
+            if (!emoji || !validEmojiPattern.test(emoji) || emoji === '?' || emoji === '') {
+                emoji = getPlantEmoji(name);
+            } else {
+                // Ensure emoji is properly encoded
+                emoji = emoji.replace(/\uFE0F/g, ''); // Remove variation selector
+            }
+            
+            if (name && quantity && unit) {
+                items.push({ 
+                    emoji: emoji,
+                    name: name, 
+                    quantity: `${quantity} ${unit}` 
+                });
+            }
+        }
+    }
+    
+    // If still no items, try splitting by emoji and parsing manually
+    if (items.length === 0) {
+        const emojiPattern = /([🌳🌴🌾🌿🌱\?])/g;
+        const parts = normalized.split(emojiPattern);
+        
+        for (let i = 1; i < parts.length; i += 2) {
+            if (i + 1 < parts.length) {
+                let emoji = parts[i].trim();
+                let content = parts[i + 1].trim();
                 
-                // Extract unit from quantity part if not already extracted
-                if (!unit && quantity) {
-                    const unitMatch = trimmed.match(/\d+\s*([a-z]+)/i);
-                    if (unitMatch) {
-                        unit = unitMatch[1];
-                    }
-                }
+                // Remove any trailing emoji that might be in the content
+                content = content.replace(/\s+[🌳🌴🌾🌿🌱].*$/, '');
                 
-                // Build full quantity string
-                let quantityText = quantity;
-                if (unit && !quantityText.includes(unit)) {
-                    quantityText += ' ' + unit;
-                } else if (!unit) {
-                    // Default unit based on name
-                    if (name.toLowerCase().includes('grass')) {
-                        quantityText += ' clumps';
-                    } else if (name.toLowerCase().includes('bamboo')) {
-                        quantityText += ' clusters';
+                // Match: name + dash + number + unit
+                const itemMatch = content.match(/^(.+?)\s*-\s*(\d+)\s+(.+)$/);
+                
+                if (itemMatch) {
+                    const name = itemMatch[1].trim();
+                    const quantity = itemMatch[2].trim();
+                    const unit = itemMatch[3].trim();
+                    
+                    // Always validate emoji - if corrupted, get it from plant name
+                    const validEmojiPattern = /[🌳🌴🌾🌿🌱🌲]/;
+                    if (!emoji || !validEmojiPattern.test(emoji) || emoji === '?' || emoji === '') {
+                        emoji = getPlantEmoji(name);
                     } else {
-                        quantityText += ' trees';
+                        // Ensure emoji is properly encoded
+                        emoji = emoji.replace(/\uFE0F/g, ''); // Remove variation selector
                     }
-                }
-                
-                if (name && quantity) {
-                    items.push({ name, quantity: quantityText });
-                    break;
+                    
+                    if (name && quantity && unit) {
+                        items.push({ 
+                            emoji: emoji,
+                            name: name, 
+                            quantity: `${quantity} ${unit}` 
+                        });
+                    }
                 }
             }
         }
-    });
+    }
     
-    // If no items found, try a simpler extraction with more patterns
+    // Final fallback: try to parse lines that start directly with plant name (no emoji)
     if (items.length === 0) {
         lines.forEach(line => {
             const trimmed = line.trim();
-            if (trimmed.match(/\d+/) && trimmed.length < 120) {
-                // Try multiple extraction patterns
+            if (!trimmed) return;
+            
+            // Match: name + dash + number + unit (no emoji at start)
+            const match = trimmed.match(/^([A-Za-z\s]+?)\s*-\s*(\d+)\s+(.+)$/);
+            if (match) {
+                const name = match[1].trim();
+                const quantity = match[2].trim();
+                const unit = match[3].trim();
+                const emoji = getPlantEmoji(name);
                 
-                // Pattern 1: Number at start, then name
-                const numFirstMatch = trimmed.match(/^(\d+)\s+([a-z\s]+)/i);
-                if (numFirstMatch) {
-                    const name = numFirstMatch[2].trim().replace(/\s*(recommended|trees?|plants?|clumps?|clusters?)\s*$/gi, '').trim();
-                    if (name && name.length > 2) {
-                        const quantity = numFirstMatch[1] + ' trees';
-                        items.push({ name, quantity });
-                        return;
-                    }
-                }
-                
-                // Pattern 2: Name then number
-                const numMatch = trimmed.match(/(\d+)/);
-                const nameMatch = trimmed.match(/^[🌳🌴🌾🌿🌱]?\s*([^0-9–\-:]+)/);
-                if (numMatch && nameMatch) {
-                    let name = nameMatch[1].trim().replace(/[–\-:]\s*$/, '').trim();
-                    name = name.replace(/\s*(recommended|trees?|plants?|clumps?|clusters?)\s*$/gi, '').trim();
-                    
-                    if (name && name.length > 2) {
-                        // Determine unit based on name
-                        let unit = 'trees';
-                        if (name.toLowerCase().includes('grass')) {
-                            unit = 'clumps';
-                        } else if (name.toLowerCase().includes('bamboo')) {
-                            unit = 'clusters';
-                        }
-                        const quantity = numMatch[1] + ' ' + unit;
-                        items.push({ name, quantity });
-                    }
+                if (name && quantity && unit) {
+                    items.push({ 
+                        emoji: emoji,
+                        name: name, 
+                        quantity: `${quantity} ${unit}` 
+                    });
                 }
             }
         });
     }
     
-    // Remove duplicates based on name (case-insensitive)
-    const seen = new Set();
-    const uniqueItems = [];
-    items.forEach(item => {
-        const key = item.name.toLowerCase();
-        if (!seen.has(key)) {
-            seen.add(key);
-            uniqueItems.push(item);
-        }
-    });
-    items.length = 0;
-    items.push(...uniqueItems);
+    // Debug: log parsed items
+    console.log('Parsed items:', items);
     
     // Build table HTML
     if (items.length === 0) {
-        // Fallback: show raw text but cleaned up
-        return `<div class="recommendations-list">${recommendations}</div>`;
+        // If parsing failed, try to display as-is but with better formatting
+        console.warn('Failed to parse recommendations, displaying as plain text');
+        return `<div class="recommendations-list"><pre style="white-space: pre-wrap; word-wrap: break-word;">${recommendations}</pre></div>`;
     }
     
-    let html = '<table class="recommendations-table">';
-    html += '<thead><tr><th>Tree/Plant</th><th>Recommended Quantity</th></tr></thead>';
+    let html = '<div class="recommendations-table-wrapper">';
+    html += '<table class="recommendations-table">';
+    html += '<thead><tr><th class="col-name">Tree/Plant</th><th class="col-quantity">Recommended Quantity</th></tr></thead>';
     html += '<tbody>';
-    items.forEach(item => {
-        html += `<tr>
-            <td class="recommendation-name" data-label="Tree/Plant">${item.name}</td>
-            <td class="recommendation-quantity" data-label="Recommended Quantity">${item.quantity}</td>
+    items.forEach((item) => {
+        // Ensure emoji is properly encoded - always use the emoji from getPlantEmoji
+        // This ensures we always have a valid emoji even if the original was corrupted
+        let emojiHtml = item.emoji;
+        
+        // Double-check: if emoji is still corrupted, get it from name again
+        if (!emojiHtml || emojiHtml === '?' || emojiHtml === '' || !/[🌳🌴🌾🌿🌱🌲]/.test(emojiHtml)) {
+            emojiHtml = getPlantEmoji(item.name);
+        }
+        
+        // Ensure proper Unicode encoding
+        if (emojiHtml.codePointAt(0)) {
+            emojiHtml = String.fromCodePoint(emojiHtml.codePointAt(0));
+        }
+        
+        html += `<tr class="recommendation-row">
+            <td class="recommendation-name" data-label="Tree/Plant">
+                <span class="recommendation-emoji" role="img" aria-label="${item.name} icon">${emojiHtml}</span>
+                <span class="recommendation-name-text">${item.name}</span>
+            </td>
+            <td class="recommendation-quantity" data-label="Recommended Quantity">
+                <span class="quantity-value">${item.quantity}</span>
+            </td>
         </tr>`;
     });
     html += '</tbody></table>';
+    html += '</div>';
     
     return html;
 }
 
 /**
  * Displays detailed recommendations in three sections
- * @param {object} detailedRecommendations - Object with soil_loss, soil_type, and vegetation sections
+ * @param {object} detailedRecommendations - Object with soil_loss, soil_type, and vegetation sections (already cleaned)
  */
 function displayDetailedRecommendations(detailedRecommendations) {
-    console.log('Displaying detailed recommendations:', detailedRecommendations);
-    
     // Show detailed recommendations section
     detailedRecommendationsSection.style.display = 'block';
     
@@ -429,105 +512,48 @@ function displayDetailedRecommendations(detailedRecommendations) {
     if (detailedRecommendations.soil_loss && detailedRecommendations.soil_loss.trim()) {
         soilLossContent.innerHTML = formatRecommendationText(detailedRecommendations.soil_loss);
         soilLossRecommendations.style.display = 'block';
-        console.log('Section 1 displayed');
-    } else {
-        console.log('Section 1 empty or missing');
     }
     
     // Display Section 2: Based on Soil Type
     if (detailedRecommendations.soil_type && detailedRecommendations.soil_type.trim()) {
         soilTypeContent.innerHTML = formatRecommendationText(detailedRecommendations.soil_type);
         soilTypeRecommendations.style.display = 'block';
-        console.log('Section 2 displayed');
-    } else {
-        console.log('Section 2 empty or missing');
     }
     
     // Display Section 3: For Vegetation
     if (detailedRecommendations.vegetation && detailedRecommendations.vegetation.trim()) {
         vegetationContent.innerHTML = formatRecommendationText(detailedRecommendations.vegetation);
         vegetationRecommendations.style.display = 'block';
-        console.log('Section 3 displayed');
-    } else {
-        console.log('Section 3 empty or missing');
     }
 }
 
 /**
- * Formats recommendation text for display (handles bullet points, paragraphs, etc.)
- * @param {string} text - Raw recommendation text
+ * Formats recommendation text for display (handles bullet points)
+ * @param {string} text - Clean recommendation text (already filtered, only bullet points)
  * @returns {string} Formatted HTML
  */
 function formatRecommendationText(text) {
     if (!text) return '';
     
-    // Clean up the text - remove section headers and explanations
-    let cleanedText = text.replace(/SECTION\s*[123][:\-]?\s*/gi, '').trim();
-    
-    // Remove verbose explanations
-    const skipPatterns = [
-        /that's\s+a\s+/i,
-        /i\s+should\s+/i,
-        /i\s+need\s+to\s+/i,
-        /moving\s+on\s+to/i,
-        /finally/i,
-        /comes\s+to\s+mind/i
-    ];
-    
-    // Split by lines
-    const lines = cleanedText.split('\n').filter(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return false;
-        
-        // Skip section headers
-        if (trimmed.match(/^SECTION\s*[123]/i)) return false;
-        
-        // Skip explanation lines
-        if (skipPatterns.some(pattern => pattern.test(trimmed))) return false;
-        
-        // Skip very long lines (likely explanations)
-        if (trimmed.length > 200) return false;
-        
-        return true;
-    });
-    
+    // Split by lines and format each bullet point
+    const lines = text.split('\n').filter(line => line.trim());
     let html = '';
-    let hasBullets = false;
     
     lines.forEach((line, index) => {
         const trimmed = line.trim();
         if (!trimmed) return;
         
-        // Check if it's a bullet point
-        if (trimmed.match(/^[-•*]\s/) || trimmed.match(/^\d+[\.\)]\s/)) {
-            hasBullets = true;
-            // Remove bullet marker and clean content
-            let content = trimmed.replace(/^[-•*\d\.\)]\s+/, '').trim();
-            // Remove markdown bold
-            content = content.replace(/\*\*([^*]+)\*\*/g, '$1');
-            // Remove extra spaces
-            content = content.replace(/\s+/g, ' ');
-            
+        // Extract content from bullet point (format: "• content")
+        const match = trimmed.match(/^[•\-\*]\s+(.+)$/);
+        if (match) {
+            const content = match[1].trim();
             if (content && content.length > 5) {
                 html += `<div class="recommendation-item-text" style="animation-delay: ${index * 0.1}s">${content}</div>`;
             }
         }
     });
     
-    // If no bullets found, try to extract from paragraphs
-    if (!hasBullets && lines.length > 0) {
-        lines.forEach((line, index) => {
-            const trimmed = line.trim();
-            if (trimmed && trimmed.length < 200 && trimmed.length > 10) {
-                // Skip if it looks like an explanation
-                if (!skipPatterns.some(pattern => pattern.test(trimmed))) {
-                    html += `<div class="recommendation-item-text" style="animation-delay: ${index * 0.1}s">${trimmed}</div>`;
-                }
-            }
-        });
-    }
-    
-    return html || '';
+    return html;
 }
 
 /**
@@ -1088,15 +1114,15 @@ function handleFormSubmit(event) {
     soilTypeContent.textContent = '';
     vegetationContent.textContent = '';
     
-    // Calculate predicted soil loss
-    const predictedSoilLoss = calculateSoilLoss(seawallLength, typhoons, floods);
-    
-    // Display results (this will also trigger AI recommendations fetch)
-    displayResults(predictedSoilLoss, soilType);
-    
-    // Re-enable button
-    predictBtn.disabled = false;
-    predictBtn.querySelector('span').textContent = 'Predict';
+        // Calculate predicted soil loss
+        const predictedSoilLoss = calculateSoilLoss(seawallLength, typhoons, floods);
+        
+        // Display results (this will also trigger AI recommendations fetch)
+        displayResults(predictedSoilLoss, soilType);
+        
+        // Re-enable button
+        predictBtn.disabled = false;
+        predictBtn.querySelector('span').textContent = 'Predict';
 }
 
 // ============================================

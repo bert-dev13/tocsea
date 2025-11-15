@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- =====================================================================
+         META TAGS AND DOCUMENT CONFIGURATION
+         ===================================================================== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="description" content="Coastal Soil Erosion Prediction System - TOCSEA">
     <title>Coastal Soil Erosion Prediction System</title>
+    
+    <!-- =====================================================================
+         EXTERNAL RESOURCES
+         ===================================================================== -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
+    <!-- =====================================================================
+         TOP NAVIGATION BAR
+         ===================================================================== -->
+    <nav class="top-navbar" role="navigation" aria-label="Main navigation">
         <div class="top-navbar-container">
             <div class="school-logo-wrapper">
                 <img src="assets/images/logo.png" alt="School Logo" class="school-logo">
@@ -20,26 +34,39 @@
         </div>
     </nav>
 
+    <!-- =====================================================================
+         MAIN APPLICATION WRAPPER
+         ===================================================================== -->
     <div class="app-wrapper">
         <div class="container">
-            <!-- Header Section -->
-            <header class="header">
+            
+            <!-- =============================================================
+                 HEADER SECTION
+                 ============================================================= -->
+            <header class="header" role="banner">
                 <div class="header-container">
                     <div class="title-wrapper">
-                        <span class="title-icon-left">🌊</span>
+                        <span class="title-icon-left" aria-hidden="true">🌊</span>
                         <h1 class="title">Coastal Soil Erosion Prediction</h1>
-                        <span class="title-icon-right">🌊</span>
+                        <span class="title-icon-right" aria-hidden="true">🌊</span>
                     </div>
-                    <div class="title-border-line"></div>
+                    <div class="title-border-line" aria-hidden="true"></div>
                     <p class="subtitle">Sistema ng Paghula ng Pagguho ng Lupa sa Baybayin</p>
                 </div>
             </header>
 
-            <!-- Main Content -->
-            <main class="main-content">
-                <!-- Input Section -->
-                <section class="input-section">
-                    <form id="predictionForm" class="prediction-form">
+            <!-- =============================================================
+                 MAIN CONTENT AREA
+                 ============================================================= -->
+            <main class="main-content" role="main">
+                
+                <!-- ---------------------------------------------------------
+                     INPUT SECTION - User Input Form
+                     --------------------------------------------------------- -->
+                <section class="input-section" aria-labelledby="input-section-title">
+                    <form id="predictionForm" class="prediction-form" novalidate>
+                        
+                        <!-- Seawall Length Input -->
                         <div class="form-group">
                             <label for="seawallLength" class="form-label">
                                 <span class="label-primary">Seawall Length</span>
@@ -54,9 +81,11 @@
                                 step="0.01"
                                 min="0"
                                 required
+                                aria-required="true"
                             >
                         </div>
 
+                        <!-- Typhoons per Year Input -->
                         <div class="form-group">
                             <label for="typhoons" class="form-label">
                                 <span class="label-primary">Typhoons per Year</span>
@@ -71,9 +100,11 @@
                                 step="0.01"
                                 min="0"
                                 required
+                                aria-required="true"
                             >
                         </div>
 
+                        <!-- Floods per Year Input -->
                         <div class="form-group">
                             <label for="floods" class="form-label">
                                 <span class="label-primary">Floods per Year</span>
@@ -88,9 +119,11 @@
                                 step="0.01"
                                 min="0"
                                 required
+                                aria-required="true"
                             >
                         </div>
 
+                        <!-- Soil Type Selection -->
                         <div class="form-group">
                             <label for="soilType" class="form-label">
                                 <span class="label-primary">Select Soil Type</span>
@@ -101,6 +134,7 @@
                                 name="soilType" 
                                 class="form-input form-select"
                                 required
+                                aria-required="true"
                             >
                                 <option value="">-- Select Soil Type --</option>
                                 <option value="sandy">Sandy Soil</option>
@@ -112,78 +146,93 @@
                             </select>
                         </div>
 
-                        <button type="submit" class="predict-button" id="predictBtn">
+                        <!-- Submit Button -->
+                        <button type="submit" class="predict-button" id="predictBtn" aria-label="Calculate soil erosion prediction">
                             <span>Predict</span>
                         </button>
                     </form>
                 </section>
 
-                <!-- Results Section -->
-                <section class="results-section" id="resultsSection" style="display: none;">
+                <!-- ---------------------------------------------------------
+                     RESULTS SECTION - Prediction Results Display
+                     --------------------------------------------------------- -->
+                <section class="results-section" id="resultsSection" style="display: none;" aria-labelledby="results-title">
+                    
+                    <!-- Results Header -->
                     <div class="results-header">
-                        <div class="results-header-icon">📊</div>
-                        <h2 class="results-title">Prediction Results</h2>
+                        <div class="results-header-icon" aria-hidden="true">📊</div>
+                        <h2 class="results-title" id="results-title">Prediction Results</h2>
                         <p class="results-subtitle">Mga Resulta ng Hula</p>
-                        <div class="results-header-line"></div>
+                        <div class="results-header-line" aria-hidden="true"></div>
                     </div>
 
+                    <!-- Results Grid - Key Metrics -->
                     <div class="results-grid">
+                        <!-- Predicted Soil Loss Card -->
                         <div class="result-card">
-                            <div class="result-card-icon">📉</div>
+                            <div class="result-card-icon" aria-hidden="true">📉</div>
                             <div class="result-label">Predicted Soil Loss</div>
                             <div class="result-label-secondary">Tinatayang Pagkawala ng Lupa</div>
                             <div class="result-value-wrapper">
-                                <div class="result-value" id="soilLossValue">-</div>
+                                <div class="result-value" id="soilLossValue" aria-live="polite">-</div>
                             </div>
                             <div class="result-unit">metric tons per year</div>
                         </div>
 
+                        <!-- Selected Soil Type Card -->
                         <div class="result-card">
-                            <div class="result-card-icon">🌱</div>
+                            <div class="result-card-icon" aria-hidden="true">🌱</div>
                             <div class="result-label">Selected Soil Type</div>
                             <div class="result-label-secondary">Napiling Uri ng Lupa</div>
                             <div class="result-value-wrapper">
-                                <div class="result-value" id="soilTypeValue">-</div>
+                                <div class="result-value" id="soilTypeValue" aria-live="polite">-</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Export Buttons -->
-                    <div class="export-buttons-wrapper" id="exportButtonsWrapper" style="display: none;">
-                        <button type="button" class="export-button pdf-button" id="downloadPdfBtn">
-                            <span class="export-icon">📄</span>
+                    <div class="export-buttons-wrapper" id="exportButtonsWrapper" style="display: none;" role="group" aria-label="Export options">
+                        <button type="button" class="export-button pdf-button" id="downloadPdfBtn" aria-label="Download results as PDF">
+                            <span class="export-icon" aria-hidden="true">📄</span>
                             <span>Download PDF</span>
                         </button>
-                        <button type="button" class="export-button clipboard-button" id="copyClipboardBtn">
-                            <span class="export-icon">📋</span>
+                        <button type="button" class="export-button clipboard-button" id="copyClipboardBtn" aria-label="Copy results to clipboard">
+                            <span class="export-icon" aria-hidden="true">📋</span>
                             <span>Copy to Clipboard</span>
                         </button>
                     </div>
 
-                    <!-- AI Recommendations Section -->
-                    <div class="recommendations-section" id="recommendationsSection" style="display: none;">
+                    <!-- -----------------------------------------------------
+                         AI RECOMMENDATIONS SECTION
+                         ----------------------------------------------------- -->
+                    <div class="recommendations-section" id="recommendationsSection" style="display: none;" aria-labelledby="recommendations-title">
                         <div class="recommendations-header">
-                            <div class="recommendations-icon">🌳</div>
-                            <h3 class="recommendations-title">Recommended Vegetation</h3>
+                            <div class="recommendations-icon" aria-hidden="true">🌳</div>
+                            <h3 class="recommendations-title" id="recommendations-title">Recommended Vegetation</h3>
                             <p class="recommendations-subtitle">Mga Inirerekomendang Puno at Halaman</p>
                         </div>
                         <div class="recommendations-content">
-                            <div class="recommendations-loading" id="recommendationsLoading" style="display: none;">
-                                <div class="loading-spinner"></div>
+                            <!-- Loading State -->
+                            <div class="recommendations-loading" id="recommendationsLoading" style="display: none;" role="status" aria-live="polite">
+                                <div class="loading-spinner" aria-hidden="true"></div>
                                 <p>Analyzing and generating recommendations...</p>
                             </div>
-                            <div class="recommendations-text" id="recommendationsText"></div>
+                            <!-- Recommendations Display -->
+                            <div class="recommendations-text" id="recommendationsText" aria-live="polite"></div>
+                            <!-- Footer Note -->
                             <div class="recommendations-footer" id="recommendationsFooter" style="display: none;">
                                 <p>🌿 These recommendations are AI-generated using DeepSeek analysis and may vary based on local climate and terrain conditions.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Detailed Recommendations Section -->
-                    <div class="detailed-recommendations-section" id="detailedRecommendationsSection" style="display: none;">
+                    <!-- -----------------------------------------------------
+                         DETAILED RECOMMENDATIONS SECTION
+                         ----------------------------------------------------- -->
+                    <div class="detailed-recommendations-section" id="detailedRecommendationsSection" style="display: none;" aria-labelledby="detailed-recommendations-title">
                         <div class="detailed-recommendations-header">
-                            <div class="detailed-recommendations-icon">📋</div>
-                            <h3 class="detailed-recommendations-title">Detailed Recommendations</h3>
+                            <div class="detailed-recommendations-icon" aria-hidden="true">📋</div>
+                            <h3 class="detailed-recommendations-title" id="detailed-recommendations-title">Detailed Recommendations</h3>
                             <p class="detailed-recommendations-subtitle">Mga Detalyadong Rekomendasyon</p>
                         </div>
                         
@@ -191,34 +240,35 @@
                             <!-- Section 1: Based on Soil Loss -->
                             <div class="recommendation-section-card" id="soilLossRecommendations" style="display: none;">
                                 <div class="section-header">
-                                    <div class="section-icon">📉</div>
+                                    <div class="section-icon" aria-hidden="true">📉</div>
                                     <h4 class="section-title">Recommendations Based on Predicted Soil Loss</h4>
                                 </div>
-                                <div class="section-content" id="soilLossContent"></div>
+                                <div class="section-content" id="soilLossContent" aria-live="polite"></div>
                             </div>
 
                             <!-- Section 2: Based on Soil Type -->
                             <div class="recommendation-section-card" id="soilTypeRecommendations" style="display: none;">
                                 <div class="section-header">
-                                    <div class="section-icon">🌱</div>
+                                    <div class="section-icon" aria-hidden="true">🌱</div>
                                     <h4 class="section-title">Recommendations Based on Selected Soil Type</h4>
                                 </div>
-                                <div class="section-content" id="soilTypeContent"></div>
+                                <div class="section-content" id="soilTypeContent" aria-live="polite"></div>
                             </div>
 
                             <!-- Section 3: For Vegetation -->
                             <div class="recommendation-section-card" id="vegetationRecommendations" style="display: none;">
                                 <div class="section-header">
-                                    <div class="section-icon">🌳</div>
+                                    <div class="section-icon" aria-hidden="true">🌳</div>
                                     <h4 class="section-title">Recommendations for Recommended Vegetation</h4>
                                 </div>
-                                <div class="section-content" id="vegetationContent"></div>
+                                <div class="section-content" id="vegetationContent" aria-live="polite"></div>
                             </div>
                         </div>
                     </div>
 
-                    <button type="button" class="reset-button" id="resetBtn">
-                        <span class="reset-icon">🔄</span>
+                    <!-- Reset Button -->
+                    <button type="button" class="reset-button" id="resetBtn" aria-label="Reset form and calculate new prediction">
+                        <span class="reset-icon" aria-hidden="true">🔄</span>
                         <span>Calculate New Prediction</span>
                     </button>
                 </section>
@@ -226,10 +276,13 @@
         </div>
     </div>
 
-    <!-- Load jsPDF library -->
+    <!-- =====================================================================
+         EXTERNAL SCRIPTS
+         ===================================================================== -->
+    <!-- jsPDF Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Verify jsPDF is loaded and log for debugging
+        // Verify jsPDF library loading
         (function() {
             function checkJsPDF() {
                 if (window.jsPDF && window.jsPDF.jsPDF) {
@@ -244,13 +297,14 @@
                 }
             }
             
-            // Check immediately
+            // Check immediately and retry if needed
             if (!checkJsPDF()) {
-                // Check again after a short delay in case it's still loading
                 setTimeout(checkJsPDF, 100);
             }
         })();
     </script>
+    
+    <!-- Main Application Script -->
     <script src="script.js"></script>
 </body>
 </html>
