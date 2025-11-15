@@ -22,7 +22,8 @@ import re
 import warnings
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from together import Together
+# Lazy import Together to avoid slow startup
+# from together import Together
 
 # ============================================================================
 # CONFIGURATION AND INITIALIZATION
@@ -30,6 +31,8 @@ from together import Together
 
 # Suppress Flask development server warnings
 warnings.filterwarnings('ignore', message='.*development server.*')
+warnings.filterwarnings('ignore', message='.*This is a development server.*')
+warnings.filterwarnings('ignore', category=UserWarning, module='werkzeug')
 
 # Flask application initialization
 app = Flask(__name__, static_folder='.', static_url_path='')
@@ -40,7 +43,17 @@ TOGETHER_API_KEY = os.getenv(
     'TOGETHER_API_KEY', 
     'tgp_v1_rQ3i3iNCz3UaTBeVo_iBAvfB_OVdSQ1Q8kOpt6izrf8'
 )
-client = Together(api_key=TOGETHER_API_KEY)
+# Lazy initialization - client will be created when first needed
+_client = None
+
+def get_client():
+    """Get or create the Together AI client (lazy initialization)."""
+    global _client
+    if _client is None:
+        # Lazy import to avoid slow startup
+        from together import Together
+        _client = Together(api_key=TOGETHER_API_KEY)
+    return _client
 
 # AI Model configuration
 AI_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct-Lite"
@@ -192,6 +205,7 @@ Requirements:
 - Start immediately with the first recommendation"""
 
     try:
+        client = get_client()
         response = client.chat.completions.create(
             model=AI_MODEL,
             messages=[
@@ -264,6 +278,7 @@ Requirements:
 """
 
     try:
+        client = get_client()
         response = client.chat.completions.create(
             model=AI_MODEL,
             messages=[
@@ -396,10 +411,31 @@ def serve_static(path):
 
 if __name__ == '__main__':
     import logging
+    import sys
     
-    # Configure logging to suppress development server warnings
+    # Suppress Flask development server warning
+    class NoDevelopmentServerWarning(logging.Filter):
+        def filter(self, record):
+            message = record.getMessage()
+            return 'development server' not in message.lower() and 'This is a development server' not in message
+    
+    # Configure logging - allow INFO level to show server URL and requests
     log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
+    log.setLevel(logging.INFO)
+    # Remove default handlers and add filtered handler
+    log.handlers.clear()
+    handler = logging.StreamHandler(sys.stdout)
+    handler.addFilter(NoDevelopmentServerWarning())
+    log.addHandler(handler)
+    
+    # Print server startup message
+    print("\n" + "="*60)
+    print("TOCSEA Server Starting...")
+    print("="*60)
+    print("Server running at: http://127.0.0.1:5000")
+    print("Press CTRL+C to quit")
+    print("="*60 + "\n")
     
     # Run Flask development server
-    app.run(debug=True, port=5000)
+    # Use explicit host and disable reloader for faster startup on Windows
+    app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)
