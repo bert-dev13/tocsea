@@ -537,7 +537,7 @@ function formatRecommendationText(text) {
     
     // Split by lines and format each bullet point
     const lines = text.split('\n').filter(line => line.trim());
-    let html = '';
+	let html = '';
     
     lines.forEach((line, index) => {
         const trimmed = line.trim();
@@ -548,12 +548,12 @@ function formatRecommendationText(text) {
         if (match) {
             const content = match[1].trim();
             if (content && content.length > 5) {
-                html += `<div class="recommendation-item-text" style="animation-delay: ${index * 0.1}s">${content}</div>`;
+				html += `<div class="recommendation-item-text" style="animation-delay: ${index * 0.1}s">${content}</div>`;
             }
         }
     });
     
-    return html;
+	return html;
 }
 
 /**
@@ -570,7 +570,14 @@ function getRecommendationsText() {
     if (table) {
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(row => {
-            const name = row.querySelector('.recommendation-name')?.textContent || '';
+            let name = row.querySelector('.recommendation-name')?.textContent || '';
+            // Strip emojis, variation selectors, and zero-width characters
+            name = name
+                .normalize('NFC')
+                .replace(/[\uD800-\uDFFF]/g, '')
+                .replace(/[\uFE0F\u200B-\u200D\u2060]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
             const quantity = row.querySelector('.recommendation-quantity')?.textContent || '';
             if (name && quantity) {
                 text += `• ${name} - ${quantity}\n`;
@@ -644,9 +651,107 @@ function getJsPDFLibrary() {
 }
 
 /**
+ * Sanitizes text for PDF rendering by removing unsupported glyphs (emojis),
+ * variation selectors, zero-width characters, and excessive whitespace.
+ * @param {string} text
+ * @returns {string}
+ */
+function sanitizePdfText(text) {
+    if (!text) return '';
+    try {
+        return text
+            .normalize('NFC')
+            // Remove surrogate pairs (emojis and symbols outside BMP)
+            .replace(/[\uD800-\uDFFF]/g, '')
+            // Remove variation selectors and zero-width chars
+            .replace(/[\uFE0F\u200B-\u200D\u2060]/g, '')
+            // Normalize dash variants to hyphen-minus
+            .replace(/[–—―]/g, '-')
+            // Collapse spaces
+            .replace(/[ \t\f\v]+/g, ' ')
+            // Trim per line
+            .split('\n').map(l => l.trim()).join('\n')
+            .trim();
+    } catch (e) {
+        return String(text);
+    }
+}
+
+/**
  * Downloads results as PDF
  */
 function downloadPDF() {
+        // Extract recommendation items (Name, Quantity) from DOM for clean PDF table
+        function getRecommendationItemsForPdf() {
+            const items = [];
+            const recommendationsElement = document.getElementById('recommendationsText');
+            if (!recommendationsElement) return items;
+            const table = recommendationsElement.querySelector('table');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    let name = row.querySelector('.recommendation-name-text')?.textContent || '';
+                    let quantity = row.querySelector('.recommendation-quantity .quantity-value')?.textContent || '';
+                    name = sanitizePdfText(name);
+                    quantity = sanitizePdfText(quantity);
+                    if (name && quantity) {
+                        items.push({ name, quantity });
+                    }
+                });
+                return items;
+            }
+            // Fallback: parse plain text bullets "• Name - quantity"
+            const text = sanitizePdfText(getRecommendationsText());
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            lines.forEach(line => {
+                const clean = line.replace(/^[•\-\*\d\.\)]\s+/, '');
+                const m = clean.match(/^(.+?)\s*-\s*(.+)$/);
+                if (m) {
+                    items.push({ name: m[1].trim(), quantity: m[2].trim() });
+                }
+            });
+            return items;
+        }
+        // Extract detailed recommendation sections from DOM for structured rendering
+        function getDetailedSectionsForPdf() {
+            const sections = [];
+            const map = [
+                { id: 'soilLossContent', label: 'Based on Predicted Soil Loss' },
+                { id: 'soilTypeContent', label: 'Based on Selected Soil Type' },
+                { id: 'vegetationContent', label: 'For Recommended Vegetation' }
+            ];
+            map.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (!el) return;
+                // Prefer collecting each rendered bullet item element to preserve separation
+                const itemNodes = el.querySelectorAll('.recommendation-item-text');
+                const items = [];
+                if (itemNodes && itemNodes.length) {
+                    itemNodes.forEach(node => {
+                        const txt = sanitizePdfText(node.textContent || '').trim();
+                        if (txt && txt.length > 1) items.push(txt);
+                    });
+                } else {
+                    // Fallback: split text content by newlines or sentence delimiters
+                    const raw = sanitizePdfText((el.textContent || '').trim());
+                    raw.split(/\n+/).forEach(line => {
+                        const t = line.trim();
+                        if (t) items.push(t.replace(/^[•\-\*]\s+/, ''));
+                    });
+                    // If still a single long line, break on typical separators
+                    if (items.length <= 1 && raw) {
+                        raw.split(/(?<=[.;])\s+|(?<=\))\s+|(?<=\])\s+/).forEach(part => {
+                            const t = part.trim();
+                            if (t && t.length > 2) items.push(t);
+                        });
+                    }
+                }
+                if (items.length) {
+                    sections.push({ label: s.label, bullets: items });
+                }
+            });
+            return sections;
+        }
     // Get jsPDF library
     const jsPDF = getJsPDFLibrary();
     
@@ -677,6 +782,8 @@ function downloadPDF() {
         const soilType = window.currentSoilType || 'N/A';
         const formData = getFormData();
         const recommendations = getRecommendationsText();
+        const recItems = getRecommendationItemsForPdf();
+        const detailedSections = getDetailedSectionsForPdf();
         
         // Set up colors
         const primaryColor = [0, 102, 255]; // #0066ff
@@ -858,53 +965,110 @@ function downloadPDF() {
             doc.text('AI-Powered Recommendations', margin, yPos);
             yPos += 10;
             
-            // Recommendations container
-            yPos += 5;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(...darkGray);
-            doc.setFont('helvetica', 'normal');
-            
-            // Split recommendations into lines
-            const lines = recommendations.split('\n').filter(line => line.trim());
-            
-            // Draw recommendations with proper formatting
-            lines.forEach((line) => {
-                checkPageBreak(15);
+            // Prefer a clean two-column table of vegetation recommendations
+            if (recItems.length) {
+                const rowHeight = 8;
+                const colNameX = margin + 6;
+                const colQtyX = margin + contentWidth - 6 - 60;
+                const headerHeight = 9;
                 
-                // Check if it's a section header
-                if (line.endsWith(':')) {
+                // Header
+                doc.setFillColor(245, 247, 251);
+                doc.rect(margin, yPos, contentWidth, headerHeight, 'F');
+                doc.setDrawColor(230, 233, 239);
+                doc.rect(margin, yPos, contentWidth, headerHeight, 'S');
+                doc.setFontSize(10);
+                doc.setTextColor(...darkGray);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Tree/Plant', colNameX, yPos + 6);
+                doc.text('Recommended Quantity', colQtyX, yPos + 6);
+                yPos += headerHeight;
+                
+                // Rows
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                recItems.forEach((it, idx) => {
+                    checkPageBreak(rowHeight + 12);
+                    if (idx % 2 === 0) {
+                        doc.setFillColor(253, 254, 255);
+                        doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
+                    }
+                    doc.setDrawColor(240, 242, 246);
+                    doc.rect(margin, yPos, contentWidth, rowHeight, 'S');
+                    const nameLines = doc.splitTextToSize(it.name, (contentWidth - 80));
+                    doc.text(nameLines, colNameX, yPos + 5);
+                    const qtyText = it.quantity;
+                    const qtyWidth = doc.getTextWidth(qtyText);
+                    doc.text(qtyText, margin + contentWidth - 6 - qtyWidth, yPos + 5);
+                    yPos += rowHeight;
+                });
+                yPos += 8;
+            } else {
+                // Fallback: render as bullet list
+                doc.setFontSize(10);
+                doc.setTextColor(...darkGray);
+                doc.setFont('helvetica', 'normal');
+                const safeRecommendations = sanitizePdfText(recommendations);
+                const lines = safeRecommendations.split('\n').filter(line => line.trim());
+                lines.forEach((line) => {
+                    checkPageBreak(15);
+                    doc.setFillColor(...primaryColor);
+                    doc.circle(margin + 8, yPos - 2, 1.5, 'F');
+                    const textX = margin + 15;
+                    const textWidth = contentWidth - 20;
+                    const cleanLine = sanitizePdfText(line.replace(/^[•\-\*\d\.\)]\s+/, '').trim());
+                    const splitText = doc.splitTextToSize(cleanLine, textWidth);
+                    splitText.forEach((textLine) => {
+                        if (yPos > pageHeight - 45) {
+                            doc.addPage();
+                            yPos = margin + 5;
+                        }
+                        doc.text(textLine, textX, yPos);
+                        yPos += 5;
+                    });
+                    yPos += 3;
+                });
+                yPos += 5;
+            }
+            
+            // Detailed recommendations
+            if (detailedSections.length) {
+                checkPageBreak(20);
+                doc.setFontSize(12);
+                doc.setTextColor(...darkGray);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Detailed Recommendations', margin, yPos);
+                yPos += 8;
+                detailedSections.forEach(section => {
+                    checkPageBreak(14);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(11);
                     doc.setTextColor(...primaryColor);
-                    yPos += 3;
-                } else {
+                    doc.text(section.label + ':', margin + 5, yPos);
+                    yPos += 6;
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(10);
                     doc.setTextColor(...darkGray);
-                    
-                    // Bullet point
-                    doc.setFillColor(...primaryColor);
-                    doc.circle(margin + 8, yPos - 2, 1.5, 'F');
-                }
-                
-                // Text
-                const textX = line.endsWith(':') ? margin + 5 : margin + 15;
-                const textWidth = contentWidth - (line.endsWith(':') ? 10 : 20);
-                const cleanLine = line.replace(/^[•\-\*\d\.\)]\s+/, '').trim();
-                const splitText = doc.splitTextToSize(cleanLine, textWidth);
-                
-                splitText.forEach((textLine) => {
-                    if (yPos > pageHeight - 45) {
-                        doc.addPage();
-                        yPos = margin + 5;
-                    }
-                    doc.text(textLine, textX, yPos);
-                    yPos += 5;
+                    section.bullets.forEach(b => {
+                        checkPageBreak(10);
+                        doc.setFillColor(...primaryColor);
+                        doc.circle(margin + 8, yPos - 2, 1.5, 'F');
+                        const textX = margin + 15;
+                        const textWidth = contentWidth - 20;
+                        const splitText = doc.splitTextToSize(sanitizePdfText(b), textWidth);
+                        splitText.forEach((textLine) => {
+                            if (yPos > pageHeight - 45) {
+                                doc.addPage();
+                                yPos = margin + 5;
+                            }
+                            doc.text(textLine, textX, yPos);
+                            yPos += 5;
+                        });
+                        yPos += 2;
+                    });
+                    yPos += 4;
                 });
-                
-                yPos += 3; // Space between items
-            });
+            }
             
             yPos += 5;
         }
@@ -1223,4 +1387,131 @@ if (typeof module !== 'undefined' && module.exports) {
         isValidNumber
     };
 }
+
+// ============================================
+// Lightweight UI Styles Injection (tables, spacing)
+// ============================================
+;(function injectRecommendationStyles() {
+	// Avoid duplicate style injection
+	if (document.getElementById('tocsea-recommendation-styles')) return;
+	const style = document.createElement('style');
+	style.id = 'tocsea-recommendation-styles';
+	style.textContent = `
+		/* Recommendations Table */
+		.recommendations-table-wrapper {
+			margin-top: 12px;
+			margin-bottom: 16px;
+			overflow-x: auto;
+		}
+		.recommendations-table {
+			width: 100%;
+			border-collapse: collapse;
+			background: #fff;
+			font-size: 14px;
+		}
+		.recommendations-table thead th {
+			text-align: left;
+			padding: 10px 12px;
+			background: #f5f7fb;
+			color: #333;
+			border-bottom: 1px solid #e6e9ef;
+			white-space: nowrap;
+		}
+		.recommendations-table tbody td {
+			padding: 10px 12px;
+			border-bottom: 1px solid #f0f2f6;
+			vertical-align: middle;
+		}
+		.recommendations-table tbody tr:hover {
+			background: #f9fbff;
+		}
+		.recommendation-emoji {
+			display: inline-flex;
+			width: 22px;
+			align-items: center;
+			justify-content: center;
+			font-size: 18px;
+			margin-right: 8px;
+		}
+		.recommendation-name-text {
+			font-weight: 600;
+			color: #2b2f36;
+		}
+		.recommendation-quantity .quantity-value {
+			display: inline-block;
+			padding: 4px 8px;
+			background: #eef6ff;
+			color: #0b5ed7;
+			border: 1px solid #d8e9ff;
+			border-radius: 6px;
+			font-weight: 600;
+			letter-spacing: .1px;
+		}
+		/* Detailed sections layout and spacing */
+		#detailedRecommendationsSection {
+			margin-top: 18px;
+			display: none;
+		}
+		#soilLossRecommendations,
+		#soilTypeRecommendations,
+		#vegetationRecommendations {
+			background: #fff;
+			border: 1px solid #e6e9ef;
+			border-radius: 10px;
+			padding: 12px 14px;
+			margin-top: 12px;
+		}
+		#soilLossRecommendations h3,
+		#soilTypeRecommendations h3,
+		#vegetationRecommendations h3 {
+			margin: 0 0 8px 0;
+			font-size: 15px;
+			color: #1f2937;
+		}
+		/* Bullet list for detailed items */
+		.recommendation-bullets {
+			margin: 6px 0 0 0;
+			padding-left: 18px;
+		}
+		.recommendation-bullets li {
+			margin: 6px 0;
+			line-height: 1.4;
+			color: #374151;
+		}
+		/* Footer spacing */
+		#recommendationsFooter {
+			margin-top: 10px;
+		}
+		/* Mobile tweaks */
+		@media (max-width: 640px) {
+			.recommendations-table thead {
+				display: none;
+			}
+			.recommendations-table tbody tr {
+				display: block;
+				border: 1px solid #eef2f7;
+				border-radius: 8px;
+				margin-bottom: 10px;
+				padding: 8px 10px;
+			}
+			.recommendations-table tbody td {
+				display: flex;
+				justify-content: space-between;
+				border: 0;
+				padding: 6px 0;
+			}
+			.recommendations-table tbody td::before {
+				content: attr(data-label);
+				font-weight: 600;
+				color: #6b7280;
+				margin-right: 12px;
+			}
+			.recommendation-quantity .quantity-value {
+				font-size: 13px;
+				padding: 3px 6px;
+			}
+		}
+	`;
+	document.head.appendChild(style);
+})();
 

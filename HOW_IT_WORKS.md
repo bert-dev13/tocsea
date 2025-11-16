@@ -153,3 +153,4 @@ A: The AI looks at how much soil loss you have. More loss = more plants needed.
 ---
 
 That's it! The system is simple: enter data → get calculation → get AI recommendations.
+py
