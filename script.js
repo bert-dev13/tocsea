@@ -508,6 +508,14 @@ function displayDetailedRecommendations(detailedRecommendations) {
     // Show detailed recommendations section
     detailedRecommendationsSection.style.display = 'block';
     
+	// Update section headers to reflect System vs AI context
+	const soilLossHeader = document.querySelector('#soilLossRecommendations h3');
+	if (soilLossHeader) soilLossHeader.textContent = 'AI Recommendation: Based on Predicted Soil Loss';
+	const soilTypeHeader = document.querySelector('#soilTypeRecommendations h3');
+	if (soilTypeHeader) soilTypeHeader.textContent = 'System Recommendation: Based on Selected Soil Type';
+	const vegetationHeader = document.querySelector('#vegetationRecommendations h3');
+	if (vegetationHeader) vegetationHeader.textContent = 'AI Recommendation: Recommended Vegetation';
+	
     // Display Section 1: Based on Soil Loss
     if (detailedRecommendations.soil_loss && detailedRecommendations.soil_loss.trim()) {
         soilLossContent.innerHTML = formatRecommendationText(detailedRecommendations.soil_loss);
@@ -588,11 +596,11 @@ function getRecommendationsText() {
     }
     
     // Add detailed recommendations if available
-    const detailedSections = [
-        { id: 'soilLossContent', label: 'Based on Predicted Soil Loss' },
-        { id: 'soilTypeContent', label: 'Based on Selected Soil Type' },
-        { id: 'vegetationContent', label: 'For Recommended Vegetation' }
-    ];
+	const detailedSections = [
+		{ id: 'soilLossContent', label: 'AI Recommendation: Based on Predicted Soil Loss' },
+		{ id: 'soilTypeContent', label: 'System Recommendation: Based on Selected Soil Type' },
+		{ id: 'vegetationContent', label: 'AI Recommendation: Recommended Vegetation' }
+	];
     
     detailedSections.forEach(section => {
         const element = document.getElementById(section.id);
@@ -714,12 +722,12 @@ function downloadPDF() {
         }
         // Extract detailed recommendation sections from DOM for structured rendering
         function getDetailedSectionsForPdf() {
-            const sections = [];
-            const map = [
-                { id: 'soilLossContent', label: 'Based on Predicted Soil Loss' },
-                { id: 'soilTypeContent', label: 'Based on Selected Soil Type' },
-                { id: 'vegetationContent', label: 'For Recommended Vegetation' }
-            ];
+			const sections = [];
+			const map = [
+				{ id: 'soilLossContent', label: 'AI Recommendation: Based on Predicted Soil Loss' },
+				{ id: 'soilTypeContent', label: 'System Recommendation: Based on Selected Soil Type' },
+				{ id: 'vegetationContent', label: 'AI Recommendation: Recommended Vegetation' }
+			];
             map.forEach(s => {
                 const el = document.getElementById(s.id);
                 if (!el) return;
@@ -1402,13 +1410,32 @@ if (typeof module !== 'undefined' && module.exports) {
 			margin-top: 12px;
 			margin-bottom: 16px;
 			overflow-x: auto;
+			max-width: 100%;
+			-webkit-overflow-scrolling: touch;
+			position: relative;
 		}
 		.recommendations-table {
 			width: 100%;
 			border-collapse: collapse;
 			background: #fff;
 			font-size: 14px;
+			/* Prevent layout jump on narrower screens and allow content to wrap nicely */
+			table-layout: auto;
+			border: 1px solid #e6e9ef;
+			border-radius: 10px;
+			overflow: hidden;
+			box-shadow: 0 1px 1px rgba(17, 24, 39, 0.02);
 		}
+		/* Consistent sizing to avoid overflow math glitches */
+		.recommendations-table, .recommendations-table * {
+			box-sizing: border-box;
+		}
+		.recommendations-table th, .recommendations-table td {
+			min-width: 0; /* enable shrinking */
+		}
+		/* Help prevent overlapping by constraining desktop column widths */
+		.recommendations-table .col-name { width: 60%; }
+		.recommendations-table .col-quantity { width: 40%; }
 		.recommendations-table thead th {
 			text-align: left;
 			padding: 10px 12px;
@@ -1416,14 +1443,39 @@ if (typeof module !== 'undefined' && module.exports) {
 			color: #333;
 			border-bottom: 1px solid #e6e9ef;
 			white-space: nowrap;
+			position: sticky;
+			top: 0;
+			z-index: 1;
 		}
 		.recommendations-table tbody td {
 			padding: 10px 12px;
 			border-bottom: 1px solid #f0f2f6;
 			vertical-align: middle;
+			word-break: break-word;
+			overflow-wrap: anywhere;
+		}
+		/* Ensure name cell composes emoji + text without overflow */
+		.recommendations-table td.recommendation-name {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			min-width: 0;
 		}
 		.recommendations-table tbody tr:hover {
 			background: #f9fbff;
+		}
+		.recommendations-table tbody tr:nth-child(even) {
+			background: #fbfcff;
+		}
+		/* Column alignment */
+		.recommendations-table .col-name,
+		.recommendations-table td.recommendation-name {
+			text-align: left;
+		}
+		.recommendations-table .col-quantity,
+		.recommendations-table td.recommendation-quantity {
+			text-align: right;
+			white-space: nowrap;
 		}
 		.recommendation-emoji {
 			display: inline-flex;
@@ -1432,10 +1484,18 @@ if (typeof module !== 'undefined' && module.exports) {
 			justify-content: center;
 			font-size: 18px;
 			margin-right: 8px;
+			flex: 0 0 22px;
 		}
 		.recommendation-name-text {
 			font-weight: 600;
 			color: #2b2f36;
+			word-break: break-word;
+			overflow-wrap: anywhere;
+			display: inline-block;
+			max-width: 100%;
+			flex: 1 1 auto;
+			min-width: 0;
+			hyphens: auto;
 		}
 		.recommendation-quantity .quantity-value {
 			display: inline-block;
@@ -1446,6 +1506,22 @@ if (typeof module !== 'undefined' && module.exports) {
 			border-radius: 6px;
 			font-weight: 600;
 			letter-spacing: .1px;
+			min-width: 88px;
+			text-align: center;
+			max-width: 100%;
+			white-space: nowrap;
+		}
+		/* Tablet tweaks */
+		@media (max-width: 840px) {
+			.recommendations-table {
+				font-size: 13px;
+			}
+			.recommendations-table thead th {
+				padding: 8px 10px;
+			}
+			.recommendations-table tbody td {
+				padding: 8px 10px;
+			}
 		}
 		/* Detailed sections layout and spacing */
 		#detailedRecommendationsSection {
@@ -1483,7 +1559,7 @@ if (typeof module !== 'undefined' && module.exports) {
 			margin-top: 10px;
 		}
 		/* Mobile tweaks */
-		@media (max-width: 640px) {
+		@media (max-width: 768px) {
 			.recommendations-table thead {
 				display: none;
 			}
@@ -1493,22 +1569,86 @@ if (typeof module !== 'undefined' && module.exports) {
 				border-radius: 8px;
 				margin-bottom: 10px;
 				padding: 8px 10px;
+				background: #fff;
+				box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
 			}
 			.recommendations-table tbody td {
-				display: flex;
-				justify-content: space-between;
+				display: grid;
+				grid-template-columns: 140px 1fr;
+				align-items: start;
+				gap: 10px;
 				border: 0;
 				padding: 6px 0;
+				min-width: 0; /* allow content to shrink and wrap */
+			}
+			/* Make name cell content flow correctly within grid */
+			.recommendations-table tbody td.recommendation-name {
+				display: grid;
+				grid-template-columns: 140px 1fr;
+				align-items: start;
+				gap: 10px;
 			}
 			.recommendations-table tbody td::before {
 				content: attr(data-label);
 				font-weight: 600;
 				color: #6b7280;
-				margin-right: 12px;
+				margin-right: 0;
+				line-height: 1.3;
+			}
+			/* Ensure inner content can wrap without overlapping */
+			.recommendations-table tbody td > * {
+				min-width: 0;
+			}
+			/* Allow quantity badge to wrap if constrained */
+			.recommendation-quantity .quantity-value {
+				white-space: normal;
+				hyphens: auto;
+				word-break: break-word;
+			}
+			.recommendations-table td.recommendation-quantity {
+				text-align: left;
 			}
 			.recommendation-quantity .quantity-value {
 				font-size: 13px;
 				padding: 3px 6px;
+				justify-self: start;
+			}
+			.recommendation-emoji {
+				width: 20px;
+				font-size: 16px;
+				margin-right: 6px;
+				flex: 0 0 20px;
+			}
+		}
+		@media (max-width: 480px) {
+			.recommendations-table {
+				font-size: 12px;
+			}
+			/* Switch to stacked labels to avoid overlap on very small screens */
+			.recommendations-table tbody td {
+				grid-template-columns: 1fr;
+				gap: 6px;
+			}
+			.recommendations-table tbody td::before {
+				display: block;
+				margin-bottom: 2px;
+			}
+			/* On very small screens, ensure name cell stacks cleanly */
+			.recommendations-table tbody td.recommendation-name {
+				grid-template-columns: 1fr;
+			}
+			.recommendation-quantity .quantity-value {
+				font-size: 12px;
+				padding: 2px 5px;
+				max-width: 100%;
+				white-space: normal; /* allow badge to wrap if needed */
+				word-break: break-word;
+				hyphens: auto;
+			}
+			#soilLossRecommendations h3,
+			#soilTypeRecommendations h3,
+			#vegetationRecommendations h3 {
+				font-size: 14px;
 			}
 		}
 	`;
