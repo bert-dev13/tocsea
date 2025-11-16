@@ -51,10 +51,10 @@ Soil Loss = 81,610.062 - (54.458 × Seawall) + (2,665.351 × Typhoons) + (2,048.
 ```
 Soil Loss = 81,610.062 - (54.458 × 150) + (2,665.351 × 3) + (2,048.205 × 2)
           = 81,610.062 - 8,168.7 + 7,996.053 + 4,096.41
-          = 85,533.82 metric tons per year
+          = 85,533.82 square meters
 ```
 
-**Result:** 85,533.82 metric tons of soil will be lost per year
+**Result:** 85,533.82 square meters of soil will be lost per year
 
 ---
 
@@ -104,7 +104,7 @@ The AI gives advice in 3 parts:
 **Step 2: System Calculates**
 ```
 Soil Loss = 81,610.062 - (54.458 × 200) + (2,665.351 × 5) + (2,048.205 × 3)
-          = 90,189.83 metric tons per year
+          = 90,189.83 square meters
 ```
 
 **Step 3: AI Recommends**

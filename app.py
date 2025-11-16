@@ -179,7 +179,7 @@ def get_ai_recommendations(soil_type, soil_loss):
     
     Args:
         soil_type (str): Selected soil type (e.g., "Loamy Soil", "Sandy Soil")
-        soil_loss (float): Predicted soil loss in metric tons per year
+        soil_loss (float): Predicted soil loss in square meters
         
     Returns:
         str: Formatted recommendations text with plant names and quantities
@@ -187,7 +187,7 @@ def get_ai_recommendations(soil_type, soil_loss):
     prompt = f"""You are a soil erosion expert. Provide ONLY the final recommendation list. NO explanations, NO thinking process, NO meta-commentary.
 
 Soil Type: {soil_type}
-Predicted Soil Loss: {soil_loss:.2f} metric tons per year
+Predicted Soil Loss: {soil_loss:.2f} square meters
 
 Output format (ONLY output the list, nothing else):
 🌴 Coconut – [number] trees
@@ -237,7 +237,7 @@ def get_detailed_recommendations(soil_type, soil_loss, vegetation_list):
     
     Args:
         soil_type (str): Selected soil type
-        soil_loss (float): Predicted soil loss in metric tons per year
+        soil_loss (float): Predicted soil loss in square meters
         vegetation_list (str): List of recommended vegetation
         
     Returns:
@@ -248,7 +248,7 @@ def get_detailed_recommendations(soil_type, soil_loss, vegetation_list):
     """
     prompt = f"""You are a soil management expert. Output ONLY the final recommendations. NO explanations, NO thinking process, NO meta-commentary.
 
-Soil Loss: {soil_loss:.2f} metric tons/year
+Soil Loss: {soil_loss:.2f} square meters
 Soil Type: {soil_type}
 Vegetation: {vegetation_list[:200]}
 
@@ -269,7 +269,7 @@ SECTION 3:
 • Recommendation 3
 
 Requirements:
-- SECTION 1: 3-5 bullet points for mitigating {soil_loss:.2f} metric tons/year soil loss
+- SECTION 1: 3-5 bullet points for mitigating {soil_loss:.2f} square meters soil loss
 - SECTION 2: 3-5 bullet points for managing {soil_type} soil
 - SECTION 3: 3-5 bullet points for planting/maintaining the vegetation
 - Use ONLY bullet points (•)

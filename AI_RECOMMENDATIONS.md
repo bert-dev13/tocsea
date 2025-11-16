@@ -39,12 +39,12 @@ The AI recommends plants that:
 
 Simple rule: **More Soil Loss = More Plants Needed**
 
-- **Low (0-10,000 tons/year)** → 10-20 trees, 30-50 grass clumps
-- **Medium (10,000-50,000 tons/year)** → 20-40 trees, 50-100 grass clumps
-- **High (50,000+ tons/year)** → 40-60+ trees, 100+ grass clumps
+- **Low (0-10,000 square meters)** → 10-20 trees, 30-50 grass clumps
+- **Medium (10,000-50,000 square meters)** → 20-40 trees, 50-100 grass clumps
+- **High (50,000+ square meters)** → 40-60+ trees, 100+ grass clumps
 
 **Example:**
-- Soil Loss: 85,500 tons/year (HIGH)
+- Soil Loss: 85,500 square meters (HIGH)
 - Soil Type: Loamy
 - **Recommendation:** Coconut (35 trees), Mahogany (30 trees), Vetiver (100 clumps), Bamboo (40 clusters)
 

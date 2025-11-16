@@ -97,7 +97,7 @@ function isValidNumber(value) {
  * @param {number} seawallLength - Seawall length in meters (S)
  * @param {number} typhoons - Number of typhoons per year (T)
  * @param {number} floods - Number of floods per year (F)
- * @returns {number} Predicted soil loss in metric tons per year
+ * @returns {number} Predicted soil loss in square meters
  */
 function calculateSoilLoss(seawallLength, typhoons, floods) {
     // Ensure inputs are numbers
@@ -883,7 +883,7 @@ function downloadPDF() {
         doc.setFontSize(28);
         doc.setTextColor(...primaryColor);
         doc.setFont('helvetica', 'bold');
-        const soilLossText = formatNumber(soilLoss) + ' metric tons/year';
+        const soilLossText = formatNumber(soilLoss) + ' square meters';
         const soilLossTextWidth = doc.getTextWidth(soilLossText);
         doc.text(soilLossText, margin + (contentWidth / 2) - (soilLossTextWidth / 2), yPos + 22);
         
@@ -1124,7 +1124,7 @@ async function copyToClipboard() {
     const text = `Coastal Soil Erosion Prediction Report
 ===============================
 
-Predicted Soil Loss: ${formatNumber(soilLoss)} metric tons per year
+Predicted Soil Loss: ${formatNumber(soilLoss)} square meters
 
 Selected Soil Type: ${soilType}
 
